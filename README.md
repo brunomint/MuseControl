@@ -154,7 +154,7 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 **Bruno Fragoso**
 
 - 📧 Email: brunofragosoa@gmail.com
-- 🐙 GitHub: [@brunofragoso](https://github.com/brunofragoso)
+- 🐙 GitHub: [@brunofragoso](https://github.com/brunomint)
 
 ---
 
