@@ -15,34 +15,12 @@
 
 ## ✨ Características
 
-- 🎮 **Interface moderna** com design glass morphism
-- 📱 **Totalmente responsiva** - funciona perfeitamente no celular
-- 🎵 **Controles musicais completos** - notas, ritmos, acordes
-- 🎯 **Controle direcional** flutuante e compacto
-- 📡 **QR Code automático** para acesso rápido
-- 🌐 **Acesso via rede local** - conecte qualquer dispositivo
-- ⚡ **Tempo real** - comandos instantâneos via PyAutoGUI
-
-## 🚀 Funcionalidades
-
-### 🎼 Controles Musicais
-- **Notas**: Dó, Ré, Mi, Fá, Sol, Lá, Si
-- **Alterações**: Sustenido, Bemol, Bequadro
-- **Ritmos**: Semibreve até Semifusa, Pontuação, Ligaduras
-- **Navegação**: Setas direcionais, Oitavas
-- **Edição**: Desfazer, Refazer, Apagar
-
-### 📱 Interface Mobile
-- Design moderno com gradientes e animações
-- Controles otimizados para touch
-- QR Code para acesso instantâneo
-- Layout responsivo para todos os tamanhos de tela
-
-### 🔧 Recursos Técnicos
-- Servidor Flask integrado
-- Descoberta automática de IP
-- Geração automática de QR Code
-- Controles flutuantes minimizáveis
+- 🥁 **Escreva marcando o pulso**: o ritmo sai da contagem de notas em cada pulso,
+  sem clicar em botão de duração e sem metrônomo
+- 🎹 **Piano na tela** com altura exata (MIDI) — funciona no celular e no iPad
+- 👀 **Prévia da partitura** antes de enviar (tercinas, ligaduras, barras)
+- 🛠 **Ferramentas do MuseScore** no celular: inserção, desfazer, apagar, tocar, setas
+- 📡 **QR Code automático** e acesso pela rede local
 
 ## 🛠️ Instalação
 
@@ -83,8 +61,54 @@ python main.py
 ### 3️⃣ Conecte-se
 1. Certifique-se de que o MuseScore está aberto
 2. Conecte seu dispositivo à mesma rede Wi-Fi
-3. Acesse o endereço mostrado na tela
-4. Comece a controlar!
+3. Leia o QR Code (ele abre direto o Modo Pulsação, em `/pulso`)
+4. Comece a escrever!
+
+## 🥁 Modo Pulsação (escrever contando pulsos)
+
+É a página principal: `http://[seu-ip]:8888/pulso` (o endereço antigo
+`/control` redireciona para cá). O botão 🛠 abre as ferramentas do MuseScore
+(inserção, sair, tocar, desfazer/refazer, apagar, setas e desligar o app).
+O pulso é uma referência de **contagem**, não de tempo: pode tocar devagar,
+parar e pensar — só a ordem dos toques importa.
+
+- O **PULSO** é um botão dividido em faixas: mínima, semínima, colcheia,
+  semicolcheia. A faixa tocada é o valor daquele pulso (a última usada fica maior).
+- Toque a 1ª nota **junto** com o pulso. Notas sozinhas depois dele dividem o
+  pulso em partes iguais: 2 = metades, 3 = tercina, 4 = quartos, 5 = quintina…
+- PULSO com a nota **segurada** prolonga a nota; PULSO **sem** nota segurada = pausa.
+- Notas juntas = acorde. Nota segurada enquanto outra muda = duas vozes
+  (aparece na prévia; o envio de duas vozes ainda não existe).
+
+As notas são tocadas num **teclado de piano** na tela, com altura exata
+(◀ ▶ mudam a oitava; o celular deitado mostra ~1,5 oitava, o iPad mais).
+
+**Envio das notas (automático):**
+- **MIDI** (oitava sempre exata): no MuseScore, Editar → Preferências → Áudio e
+  MIDI → Entrada MIDI = **Midi Through**. No Linux o MuseControl detecta isso
+  sozinho (indicador "MIDI ✓" no topo).
+- **Teclado** (sem configurar nada): as notas vão por letras e o MuseControl
+  calcula os Ctrl+↑/↓ de oitava e os ↑/↓ de acidente. A 1ª nota de cada envio
+  pode sair uma oitava fora. Escolha a armadura da partitura nos ajustes.
+
+Duração, ligadura, pausa e quiálteras sempre vão por teclas (o MuseScore
+precisa estar em foco na hora de enviar).
+
+Exemplos: colcheia + 2 semicolcheias = ♪+Dó, ♪+Ré, Mi ·
+colcheia pontuada + semicolcheia = ♪+Dó (segura), ♬, solta, ♬+Ré ·
+tercina = ♩+Dó, Ré, Mi.
+
+Nada vai para o MuseScore enquanto você escreve. Confira a prévia e toque em
+**Enviar**: o MuseControl envia tudo (duração, nota por MIDI, `T` para
+ligadura, `0` para pausa, `Ctrl+3`… para quiálteras). Antes, deixe o MuseScore
+em foco, no modo de inserção (N) e com o cursor no começo do compasso.
+
+No computador: 6/5/4/3 = pulso de mínima/semínima/colcheia/semicolcheia,
+Espaço = repete o último, C D E F G A B = teclas brancas da 1ª oitava visível
+(segure para prolongar), ← → = muda a oitava,
+Backspace = desfazer, Enter = enviar.
+
+Testes: `pytest tests`
 
 ## 📱 Screenshots
 
@@ -98,17 +122,17 @@ Design responsivo otimizado para smartphones com controles touch-friendly.
 
 ```
 MuseControl/
-├── main.py                 # Servidor Flask principal
+├── main.py                 # Sobe o servidor, QR code, desligar
+├── pulsacao.py             # Modo Pulsação: regras do ritmo e envio ao MuseScore
 ├── requirements.txt        # Dependências Python
-├── README.md              # Documentação
-├── .gitignore             # Arquivos ignorados pelo Git
-├── static/                # Recursos estáticos
-│   ├── notas_musicais/    # Ícones de notas musicais
-│   ├── webfonts/          # Font Awesome
-│   └── qrcode.png         # QR Code gerado automaticamente
-└── templates/             # Templates HTML
-    ├── index.html         # Página inicial
-    └── control.html       # Interface de controle
+├── tests/                  # Testes (pytest)
+├── static/
+│   ├── pulso.js / pulso.css  # Tela do celular (pulso, piano, prévia)
+│   ├── notas_musicais/     # Ícones das figuras
+│   └── qrcode.png          # QR Code gerado automaticamente
+└── templates/
+    ├── index.html          # Página inicial (endereço + QR code)
+    └── pulso.html          # Tela principal
 ```
 
 ## 🔧 Dependências
@@ -117,7 +141,7 @@ MuseControl/
 - **PyAutoGUI** - Automação de teclado/mouse
 - **qrcode** - Geração de QR codes
 - **Pillow** - Processamento de imagens
-- **netifaces** - Detecção de interfaces de rede
+- **python-rtmidi** - Envio das notas por MIDI
 
 ## 🌟 Recursos Avançados
 

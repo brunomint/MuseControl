@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MuseControl · Pulsação</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='pulso.css') }}">
+</head>
+<body>
+    <header class="topo">
+        <button id="btnFerramentas" class="icone" aria-label="Ferramentas do MuseScore">🛠</button>
+        <span id="status" class="status">Toque uma faixa do PULSO junto com a 1ª nota</span>
+        <button id="modoBadge" class="badge" title="Como as notas vão para o MuseScore">…</button>
+        <button id="btnAjustes" class="icone" aria-label="Ajustes">⚙</button>
+    </header>
+
+    <div id="ferramentas" class="ajustes ferramentas hidden">
+        <p class="titulo">No MuseScore</p>
+        <div class="grade">
+            <button data-cmd="insercao">Inserção (N)</button>
+            <button data-cmd="sair">Sair (Esc)</button>
+            <button data-cmd="tocar">▶ Tocar / parar</button>
+            <button data-cmd="desfazer">↶ Desfazer</button>
+            <button data-cmd="refazer">↷ Refazer</button>
+            <button data-cmd="apagar">⌫ Apagar</button>
+        </div>
+        <div class="setas">
+            <button data-cmd="esquerda" aria-label="Esquerda">◀</button>
+            <button data-cmd="cima" aria-label="Cima">▲</button>
+            <button data-cmd="baixo" aria-label="Baixo">▼</button>
+            <button data-cmd="direita" aria-label="Direita">▶</button>
+        </div>
+        <button id="btnDesligar" class="desligar">⏻ Desligar o MuseControl</button>
+    </div>
+
+    <div id="ajustes" class="ajustes hidden">
+        <label>Compasso
+            <select id="bpb">
+                <option value="4">4/4</option>
+                <option value="3">3/4</option>
+                <option value="2">2/4</option>
+            </select>
+        </label>
+        <label>Envio das notas
+            <select id="modo">
+                <option value="auto">Automático</option>
+                <option value="midi">MIDI (oitava exata)</option>
+                <option value="teclado">Teclado (letras)</option>
+            </select>
+        </label>
+        <p id="modoInfo" class="dica"></p>
+        <label>Armadura da partitura
+            <select id="armadura">
+                <option value="7">7♯ (Dó♯ maior)</option>
+                <option value="6">6♯ (Fá♯ maior)</option>
+                <option value="5">5♯ (Si maior)</option>
+                <option value="4">4♯ (Mi maior)</option>
+                <option value="3">3♯ (Lá maior)</option>
+                <option value="2">2♯ (Ré maior)</option>
+                <option value="1">1♯ (Sol maior)</option>
+                <option value="0" selected>Nenhuma (Dó maior)</option>
+                <option value="-1">1♭ (Fá maior)</option>
+                <option value="-2">2♭ (Si♭ maior)</option>
+                <option value="-3">3♭ (Mi♭ maior)</option>
+                <option value="-4">4♭ (Lá♭ maior)</option>
+                <option value="-5">5♭ (Ré♭ maior)</option>
+                <option value="-6">6♭ (Sol♭ maior)</option>
+                <option value="-7">7♭ (Dó♭ maior)</option>
+            </select>
+        </label>
+        <label>Som ao tocar
+            <select id="som">
+                <option value="1">Ligado</option>
+                <option value="0">Desligado</option>
+            </select>
+        </label>
+        <label>Esperar antes de digitar
+            <select id="delay">
+                <option value="0">Nada (uso pelo celular)</option>
+                <option value="3">3 s (para clicar no MuseScore)</option>
+                <option value="5">5 s</option>
+            </select>
+        </label>
+        <p class="dica"><b>Como escrever:</b> toque a faixa do PULSO junto com a 1ª nota. Notas sozinhas depois dividem o pulso (2 = metades, 3 = tercina, 4 = quartos…). PULSO com a nota segurada prolonga; PULSO sem nota segurada = pausa.</p>
+        <p class="dica">No MuseScore: janela em foco, modo de inserção (N), cursor no início do compasso. Em Preferências → Áudio e MIDI, a Entrada MIDI precisa ser "Midi Through" (as alturas vão por MIDI).</p>
+        <p class="dica">No computador: 6 / 5 / 4 / 3 = pulso de mínima / semínima / colcheia / semicolcheia · Espaço = repete o último · C D E F G A B = teclas brancas da primeira oitava visível (segure para prolongar) · ← → = muda a oitava · Backspace = desfazer · Enter = enviar</p>
+    </div>
+
+    <section id="previa" class="previa" aria-live="polite">
+        <span class="vazio">A partitura aparece aqui conforme você escreve.</span>
+    </section>
+
+    <main class="palco">
+        <div id="pulso" class="pulso" role="group" aria-label="Pulso">
+            <button class="faixa" data-value="32"><img src="static/notas_musicais/minima.png" alt="">mínima</button>
+            <button class="faixa atual" data-value="16"><img src="static/notas_musicais/seminima.png" alt="">semínima</button>
+            <button class="faixa" data-value="8"><img src="static/notas_musicais/colcheia.png" alt="">colcheia</button>
+            <button class="faixa" data-value="4"><img src="static/notas_musicais/semicolcheia.png" alt="">semicolcheia</button>
+        </div>
+
+        <div class="teclado">
+            <div class="regiao">
+                <button id="oitavaMenos" class="seta" aria-label="Oitava abaixo">◀</button>
+                <span id="faixaVisivel" class="faixa-visivel">Dó4 – Si4</span>
+                <button id="oitavaMais" class="seta" aria-label="Oitava acima">▶</button>
+            </div>
+            <div id="piano" class="piano"></div>
+        </div>
+    </main>
+
+    <div id="corrigir" class="corrigir hidden">
+        <span>A oitava do trecho saiu errada?</span>
+        <button id="trechoMenos">Trecho 8ª↓</button>
+        <button id="trechoMais">Trecho 8ª↑</button>
+    </div>
+
+    <footer class="acoes">
+        <button id="btnDesfazer">↶ Desfazer pulso</button>
+        <button id="btnLimpar">Limpar</button>
+        <button id="btnEnviar" class="enviar">Enviar ▶</button>
+    </footer>
+
+    <details class="teclas">
+        <summary>Teclas que serão enviadas (<span id="totalTeclas">0</span>)</summary>
+        <code id="teclas"></code>
+    </details>
+
+    <div id="aviso" class="aviso hidden"></div>
+
+    <script src="{{ url_for('static', filename='pulso.js') }}"></script>
+</body>
+</html>

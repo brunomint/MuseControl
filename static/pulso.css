@@ -1,0 +1,270 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --roxo1: #667eea;
+    --roxo2: #764ba2;
+    --branco: rgba(255, 255, 255, 0.95);
+    --texto: #2d3748;
+    --verde: #38a169;
+}
+
+html, body { height: 100%; }
+
+body {
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, var(--roxo1) 0%, var(--roxo2) 100%);
+    color: var(--texto);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+button {
+    font: inherit;
+    border: none;
+    border-radius: 12px;
+    background: var(--branco);
+    color: var(--texto);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.hidden { display: none !important; }
+
+/* topo */
+.topo { display: flex; align-items: center; gap: 10px; color: #fff; }
+.status { flex: 1; text-align: center; font-size: 14px; font-weight: 600; }
+.status.gravando::before { content: '● '; color: #ff6b6b; }
+.icone { width: 40px; height: 40px; font-size: 20px; }
+.badge { flex: 0 0 auto; display: inline-flex; align-items: center; height: 32px; padding: 0 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.badge.modo-midi { background: #c6f6d5; color: #22543d; }
+.badge.modo-teclado { background: #fefcbf; color: #744210; }
+
+.ajustes {
+    background: var(--branco);
+    border-radius: 14px;
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+    font-size: 14px;
+}
+.ajustes label { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ajustes select { font: inherit; padding: 4px; border-radius: 8px; }
+.dica { font-size: 12px; color: #4a5568; }
+
+/* gaveta de ferramentas do MuseScore */
+.ferramentas .titulo { font-weight: 700; font-size: 13px; color: #4a5568; }
+.ferramentas .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ferramentas .setas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ferramentas button { height: 44px; font-size: 13px; font-weight: 600; background: #edf2f7; }
+.ferramentas .setas button { font-size: 18px; }
+.ferramentas .desligar { background: #fed7d7; color: #9b2c2c; }
+
+/* prévia da partitura */
+.previa {
+    background: var(--branco);
+    border-radius: 14px;
+    min-height: 74px;
+    padding: 8px;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+.vazio { color: #718096; font-size: 13px; align-self: center; white-space: normal; }
+.fig {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 34px;
+    padding: 2px 3px;
+    border-radius: 8px;
+}
+.fig .img { display: flex; align-items: flex-end; height: 36px; }
+.fig img { height: 34px; width: auto; }
+.fig img.ponto { height: 12px; margin-left: 1px; }
+.fig .nome { font-size: 11px; font-weight: 600; }
+.fig.resto .nome { color: #718096; }
+.fig.novo { background: #e6fffa; }
+.liga { font-size: 18px; color: #4a5568; align-self: center; margin: 0 -2px; }
+.quialtera {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+.quialtera .num {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    border: 1.5px solid #4a5568;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    margin: 0 6px 1px;
+    line-height: 12px;
+}
+.quialtera .grupo { display: flex; gap: 2px; }
+.fig .voz2 { font-size: 10px; color: #805ad5; font-weight: 700; }
+.barra { width: 2px; align-self: stretch; background: #2d3748; margin: 0 4px; }
+.previa > * { flex-shrink: 0; }
+
+/* área de tocar */
+.palco {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    min-height: 260px;
+}
+
+/* PULSO: um botão só, dividido em faixas. A última faixa usada fica um
+   pouco maior; a ordem nunca muda e o tamanho só muda ao trocar de valor. */
+.pulso {
+    flex: 0 0 38%;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.35);
+    padding: 3px;
+}
+.faixa {
+    flex: 1 1 0;
+    border-radius: 6px;
+    background: linear-gradient(160deg, #fff, #edf2f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--roxo2);
+    touch-action: none;
+    transition: flex-grow 0.25s ease, background 0.05s;
+    box-shadow: none;
+}
+.faixa:first-child { border-radius: 17px 17px 6px 6px; }
+.faixa:last-child { border-radius: 6px 6px 17px 17px; }
+.faixa img { height: 26px; width: auto; }
+.faixa.atual { flex-grow: 1.45; background: linear-gradient(160deg, #ebf4ff, #e9d8fd); font-size: 16px; }
+.faixa.atual img { height: 32px; }
+.faixa.batida { background: linear-gradient(160deg, #c3dafe, #d6bcfa); }
+
+.teclado { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.regiao { display: flex; align-items: center; gap: 6px; }
+.seta { width: 52px; height: 40px; font-size: 18px; }
+.faixa-visivel { flex: 1; text-align: center; color: #fff; font-weight: 700; font-size: 15px; }
+
+/* teclado de piano: teclas brancas lado a lado, pretas por cima */
+.piano {
+    flex: 1;
+    position: relative;
+    display: flex;
+    min-height: 150px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #1a202c;
+    padding: 3px;
+    gap: 2px;
+}
+.tecla {
+    touch-action: none;
+    box-shadow: none;
+    padding: 0;
+}
+.tecla.branca {
+    flex: 1 1 0;
+    background: linear-gradient(180deg, #fff 80%, #edf2f7);
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #718096;
+}
+.tecla.branca.do { color: var(--roxo2); font-size: 12px; }
+.tecla.preta {
+    position: absolute;
+    top: 3px;
+    height: 58%;
+    background: linear-gradient(180deg, #2d3748, #111);
+    border-radius: 0 0 6px 6px;
+    z-index: 2;
+}
+.tecla.branca.tocando { background: linear-gradient(180deg, #c3dafe, #a3bffa); color: var(--texto); }
+.tecla.preta.tocando { background: linear-gradient(180deg, #667eea, #553c9a); }
+
+/* correção de oitava (só depois de enviar no modo teclado) */
+.corrigir {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fefcbf;
+    color: #744210;
+    border-radius: 12px;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.corrigir span { flex: 1; }
+.corrigir button { height: 38px; padding: 0 10px; font-size: 13px; font-weight: 700; }
+
+/* ações */
+.acoes { display: grid; grid-template-columns: 1.3fr 1fr 1.3fr; gap: 6px; }
+.acoes button { height: 46px; font-size: 13px; font-weight: 600; }
+.acoes .enviar { background: var(--verde); color: #fff; }
+.acoes button:disabled { opacity: 0.5; }
+
+.teclas { color: #fff; font-size: 12px; }
+.teclas summary { cursor: pointer; }
+.teclas code { display: block; margin-top: 4px; word-break: break-word; white-space: normal; }
+
+.aviso {
+    position: fixed;
+    left: 50%;
+    top: 64px;
+    transform: translateX(-50%);
+    background: #2d3748;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    max-width: 90vw;
+    text-align: center;
+    z-index: 10;
+}
+
+/* celular deitado: mais espaço para as mãos */
+@media (orientation: landscape) and (max-height: 500px) {
+    body { gap: 6px; padding: 6px; }
+    .previa { min-height: 62px; }
+    .palco { min-height: 0; }
+    .acoes button { height: 38px; }
+    .seta { height: 34px; }
+    .piano { min-height: 0; }
+    .faixa img { height: 20px; }
+    .faixa.atual img { height: 24px; }
+}
+
+/* celular em pé: PULSO em cima (faixas lado a lado) e piano embaixo,
+   os dois com a largura toda */
+@media (orientation: portrait) and (max-width: 700px) {
+    .palco { flex-direction: column; }
+    .pulso { flex: 0 0 40%; flex-direction: row; order: 2; }
+    .teclado { order: 1; }
+    .faixa { flex-direction: column; gap: 4px; font-size: 12px; }
+    .faixa.atual { font-size: 13px; }
+    .faixa:first-child { border-radius: 17px 6px 6px 17px; }
+    .faixa:last-child { border-radius: 6px 17px 17px 6px; }
+    .faixa img { height: 28px; }
+    .faixa.atual img { height: 34px; }
+    .piano { min-height: 0; }
+}
