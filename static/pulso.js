@@ -272,7 +272,7 @@
             info = 'As notas vão por MIDI: oitava sempre exata.';
         } else {
             info = 'As notas vão por letras: o MuseScore acerta a oitava pela nota anterior, mas a 1ª nota de cada envio pode sair uma oitava fora (corrija com Ctrl+↑/↓). Escolha a armadura certa abaixo.';
-            if (auto) info += ' Para oitava exata, no MuseScore abra Editar → Preferências → Áudio e MIDI e escolha Entrada MIDI = "Midi Through".';
+            if (auto) info += ' Para oitava exata, no MuseScore abra Editar → Preferências → Áudio e MIDI e escolha Entrada MIDI = "Midi Through" (no Windows: instale o loopMIDI, crie uma porta e escolha ela no MuseScore e em "Envio das notas: MIDI").';
         }
         if (auto && midiDetectado === null) info += ' (Não consigo detectar o MIDI neste computador; escolha MIDI manualmente se já estiver ligado.)';
         el.modoInfo.textContent = info;

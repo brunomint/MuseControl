@@ -66,7 +66,9 @@ PIECES = [
 ]
 NOTE_NAMES = ["Dó", "Dó♯", "Ré", "Ré♯", "Mi", "Fá", "Fá♯", "Sol", "Sol♯", "Lá", "Lá♯", "Si"]
 MIDI_MIN, MIDI_MAX = 21, 108  # extensão do piano
-MIDI_PORT = "Midi Through"
+MIDI_PORT = "Midi Through"  # Linux
+# portas aceitas para enviar as notas (a 1ª que existir): Linux, Windows (loopMIDI)
+MIDI_PORTAS = ("Midi Through", "loopMIDI", "MuseControl")
 MAX_TUPLET_KEY = 9  # o MuseScore tem atalho Ctrl+2 ... Ctrl+9
 
 
@@ -440,10 +442,12 @@ def _open_midi():
                          'ou escolha o envio "Teclado" nos ajustes')
     out = rtmidi.MidiOut(name="MuseControl")
     ports = out.get_ports()
-    idx = next((i for i, name in enumerate(ports) if MIDI_PORT in name), None)
+    idx = next((i for nome in MIDI_PORTAS for i, name in enumerate(ports)
+                if nome.lower() in name.lower()), None)
     if idx is None:
         out.delete()
-        raise PulseError(f'Porta MIDI "{MIDI_PORT}" não encontrada no computador')
+        raise PulseError('Porta MIDI não encontrada: no Linux use "Midi Through"; '
+                         'no Windows instale o loopMIDI. Ou escolha o envio "Teclado".')
     out.open_port(idx, "MuseControl")
     _midi_out = out
     return out

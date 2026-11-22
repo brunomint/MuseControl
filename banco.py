@@ -18,7 +18,9 @@ import threading
 import time
 from contextlib import contextmanager
 
-PASTA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dados")
+import caminhos
+
+PASTA = caminhos.pasta_dados()  # ./dados no código; pasta do usuário no instalado
 ARQUIVO = os.path.join(PASTA, "musecontrol.db")
 JSON_ANTIGO = os.path.join(PASTA, "variaveis.json")
 GERAL = 0  # projeto_id das variáveis gerais

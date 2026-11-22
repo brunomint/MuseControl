@@ -23,7 +23,21 @@ Piano na tela, celular ou PC, variáveis reutilizáveis.*
 - 🛠 **Ferramentas do MuseScore** no celular: inserção, desfazer, apagar, tocar, setas
 - 📡 **QR Code automático** e acesso pela rede local
 
-## 🛠️ Instalação
+## 📦 Instalar (sem programar)
+
+Na página [Releases](https://github.com/brunomint/MuseControl/releases/latest):
+
+- **Windows:** baixe `MuseControl-…-instalador-windows.exe` e abra. Cria atalho
+  no menu Iniciar e na área de trabalho. Os projetos ficam em `%APPDATA%\MuseControl`.
+  (Como o instalador não é assinado, o Windows pode avisar: *Mais informações →
+  Executar assim mesmo*.) Para o envio por MIDI no Windows, instale o
+  [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) e crie uma porta.
+- **Linux:** `curl -fsSL https://github.com/brunomint/MuseControl/releases/latest/download/instalar-musecontrol.sh | bash`
+  (ou baixe o `.sh` e rode `bash instalar-musecontrol.sh`). Fica no menu de
+  aplicativos; os projetos ficam em `~/.local/share/musecontrol/dados`.
+  Para remover: `bash instalar-musecontrol.sh --remover`.
+
+## 🛠️ Instalação (para desenvolver)
 
 ### 1️⃣ Clone o repositório
 ```bash
@@ -164,6 +178,9 @@ MuseControl/
 ├── variaveis.py            # Variáveis: trechos guardados com nome
 ├── projetos.py             # Projetos (um por música) e rascunho com versão
 ├── banco.py                # Banco SQLite (dados/musecontrol.db)
+├── caminhos.py             # Onde ficam programa e dados (código, .exe, instalado)
+├── empacotar/              # Instaladores: .spec (PyInstaller), .iss (Windows), .sh (Linux)
+├── .github/workflows/      # GitHub Actions: monta os instaladores ao marcar uma versão
 ├── dados/                  # O banco (criado sozinho, fora do Git)
 ├── android/                # App Android (WebView)
 ├── requirements.txt        # Dependências Python

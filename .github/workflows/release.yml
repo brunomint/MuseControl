@@ -1,0 +1,78 @@
+# Monta os instaladores quando uma versão é marcada (git tag v2.0.0 && git push --tags)
+# e publica na página "Releases" do GitHub:
+#   - MuseControl-<versão>-instalador-windows.exe  (PyInstaller + Inno Setup)
+#   - instalar-musecontrol.sh                      (Linux)
+name: Instaladores
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Testes
+        run: |
+          pip install pytest
+          python -m pytest -q tests
+
+      - name: Empacotar (PyInstaller)
+        run: pyinstaller --noconfirm empacotar/musecontrol.spec
+
+      - name: Montar o instalador (Inno Setup)
+        shell: pwsh
+        run: |
+          $versao = "${{ github.ref_name }}".TrimStart("v")
+          if (-not ($versao -match '^\d')) { $versao = "0.0.0-teste" }
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc "/DVersao=$versao" empacotar\instalador-windows.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instalador-windows
+          path: Output/*.exe
+
+  publicar:
+    needs: windows
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: instalador-windows
+          path: Output
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: MuseControl ${{ github.ref_name }}
+          body: |
+            **Windows:** baixe `MuseControl-…-instalador-windows.exe` e abra. Não precisa de administrador.
+            O Windows pode avisar "Windows protegeu o computador" (o instalador não é assinado): clique em *Mais informações* → *Executar assim mesmo*.
+
+            **Linux:** baixe `instalar-musecontrol.sh` e rode no terminal: `bash instalar-musecontrol.sh`
+            (ou, numa linha só: `curl -fsSL https://github.com/brunomint/MuseControl/releases/latest/download/instalar-musecontrol.sh | bash`)
+
+            Depois, no celular (mesmo Wi-Fi), abra o endereço que aparece na tela, ou instale o app Android.
+          files: |
+            Output/*.exe
+            empacotar/instalar-musecontrol.sh
