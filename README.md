@@ -2,14 +2,15 @@
 
 <div align="center">
 
-![MuseControl](https://img.shields.io/badge/MuseControl-v1.0-blue?style=for-the-badge)
+![MuseControl](https://img.shields.io/badge/MuseControl-v2.0-blue?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.7+-green?style=for-the-badge&logo=python)
 ![Flask](https://img.shields.io/badge/Flask-2.0+-red?style=for-the-badge&logo=flask)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
-**Controle remoto moderno para MuseScore via interface web**
+**Escreva partitura no MuseScore pensando como músico**
 
-*Transforme seu smartphone em um controle remoto profissional para o MuseScore*
+*Marque o pulso e toque as notas — o ritmo sai da contagem (2 notas = colcheias, 3 = tercina…).<br>
+Piano na tela, celular ou PC, variáveis reutilizáveis.*
 
 </div>
 
@@ -125,13 +126,11 @@ Backspace ou Ctrl+Z = desfazer, Enter = enviar.
 
 Testes: `pytest tests`
 
-## 📱 Screenshots
+## 📱 Telas
 
-### Desktop
-Interface principal com todos os controles musicais organizados em seções.
-
-### Mobile
-Design responsivo otimizado para smartphones com controles touch-friendly.
+- **Celular em pé:** piano em cima (com ◀ ‹ › ▶), PULSO embaixo, prévia da partitura no topo.
+- **Celular deitado / iPad / PC:** mais oitavas no piano; no PC aparecem os atalhos do teclado.
+- **Tema escuro ou claro**, com as cores e a fonte do MuseScore 4.
 
 ## 🗂️ Estrutura do Projeto
 
@@ -162,21 +161,18 @@ MuseControl/
 - **Pillow** - Processamento de imagens
 - **python-rtmidi** - Envio das notas por MIDI
 
-## 🌟 Recursos Avançados
+## 🌟 Por que escrever assim
 
-### QR Code Automático
-O aplicativo gera automaticamente um QR Code com o endereço de acesso, facilitando a conexão de dispositivos móveis.
+No MuseScore, antes de cada nota é preciso escolher a figura (semínima,
+colcheia…) e depois a nota. Aqui você pensa como músico: "este tempo tem duas
+notas" — e a figura sai sozinha. Menos decisões por nota, menos cansaço e menos
+erro em partituras longas. Quiálteras (tercina, quintina…) saem pela simples
+contagem, e trechos que se repetem viram variáveis.
 
-### Interface Moderna
-- Design glass morphism com blur effects
-- Animações suaves de entrada
-- Gradientes modernos
-- Efeitos hover interativos
-
-### Controles Flutuantes
-- Controle direcional minimizável
-- Botão de desligar no canto inferior
-- Ícone de informações com QR Code
+Outros recursos:
+- **QR Code automático** para abrir no celular
+- **Indicador de conexão** (barras) e **modo MIDI ✓** detectado sozinho no Linux
+- **Ferramentas do MuseScore** no 🛠: inserção, desfazer/refazer, apagar, tocar, setas
 
 ## 🤝 Contribuindo
 
