@@ -18,7 +18,7 @@
         padding: 24px;
     }
     .caixa { width: 100%; max-width: 420px; display: grid; gap: 16px; text-align: center; }
-    .logo { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; background: #2093fe; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #fff; }
+    .logo { width: 88px; height: 88px; margin: 0 auto; display: block; }
     h1 { font-size: 22px; font-weight: 600; }
     #status { color: #a8a8aa; font-size: 15px; min-height: 22px; }
     #aviso { background: #3d3524; border: 1px solid #6b5626; color: #f0b429; border-radius: 3px; padding: 8px; font-size: 14px; }
@@ -36,7 +36,15 @@
 </head>
 <body>
 <div class="caixa">
-    <div class="logo">♩</div>
+    <svg class="logo" viewBox="0 0 512 512" aria-hidden="true">
+        <rect x="16" y="16" width="480" height="480" rx="112" fill="#2093FE"/>
+        <g fill="#fff"><ellipse cx="0" cy="0" rx="62" ry="44" transform="translate(205 352) rotate(-22)"/><rect x="249" y="128" width="20" height="222" rx="4"/></g>
+        <g fill="none" stroke="#fff" stroke-linecap="round" stroke-width="20">
+            <path d="M318 270 a70 70 0 0 1 0 100" opacity="0.95"/>
+            <path d="M356 236 a118 118 0 0 1 0 168" opacity="0.7"/>
+            <path d="M394 202 a166 166 0 0 1 0 236" opacity="0.45"/>
+        </g>
+    </svg>
     <h1>MuseControl</h1>
     <p id="aviso" class="oculto"></p>
     <p id="status">Procurando o computador…</p>

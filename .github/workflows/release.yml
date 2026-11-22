@@ -72,7 +72,9 @@ jobs:
             **Linux:** baixe `instalar-musecontrol.sh` e rode no terminal: `bash instalar-musecontrol.sh`
             (ou, numa linha só: `curl -fsSL https://github.com/brunomint/MuseControl/releases/latest/download/instalar-musecontrol.sh | bash`)
 
-            Depois, no celular (mesmo Wi-Fi), abra o endereço que aparece na tela, ou instale o app Android.
+            **Android (opcional):** baixe `MuseControl-…-android.apk` e instale (permita "fontes desconhecidas"). O app acha o computador sozinho na rede.
+
+            Depois, no celular (mesmo Wi-Fi), abra o endereço que aparece na tela, ou use o app Android.
           files: |
             Output/*.exe
             empacotar/instalar-musecontrol.sh

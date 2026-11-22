@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone A do MuseControl: semínima "emitindo" o pulso (mesmo desenho de
+     empacotar/icone.svg). As coordenadas são as do SVG (caixa de 512) e o grupo
+     reduz e centraliza tudo na área segura do ícone adaptativo (66 de 108). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <!-- haste -->
-    <path android:fillColor="#FFFFFF" android:pathData="M58,30h5v42h-5z" />
-    <!-- cabeça da nota (elipse inclinada) -->
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M60.5,71.5c0,5 -6.2,9.6 -12.8,9.6c-5.3,0 -8.2,-2.9 -8.2,-6.6c0,-5 6.2,-9.6 12.8,-9.6c5.3,0 8.2,2.9 8.2,6.6z" />
-    <!-- marca do pulso -->
-    <path android:fillColor="#9FD0FF" android:pathData="M36,84h36v4h-36z" />
+    <group android:scaleX="0.18" android:scaleY="0.18"
+        android:translateX="0.4" android:translateY="1.8">
+        <!-- cabeça da nota (elipse inclinada) -->
+        <group android:pivotX="205" android:pivotY="352" android:rotation="-22">
+            <path android:fillColor="#FFFFFF"
+                android:pathData="M143,352 a62,44 0 1,0 124,0 a62,44 0 1,0 -124,0z" />
+        </group>
+        <!-- haste -->
+        <path android:fillColor="#FFFFFF" android:pathData="M249,132 h20 v218 h-20z" />
+        <!-- ondas do pulso -->
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="20" android:strokeLineCap="round"
+            android:strokeAlpha="0.95" android:pathData="M318,270 a70,70 0 0,1 0,100" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="20" android:strokeLineCap="round"
+            android:strokeAlpha="0.7" android:pathData="M356,236 a118,118 0 0,1 0,168" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="20" android:strokeLineCap="round"
+            android:strokeAlpha="0.45" android:pathData="M394,202 a166,166 0 0,1 0,236" />
+    </group>
 </vector>
