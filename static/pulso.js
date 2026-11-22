@@ -16,7 +16,7 @@
 
     const $ = (id) => document.getElementById(id);
     const el = {
-        status: $('status'), previa: $('previa'), bpb: $('bpb'), delay: $('delay'),
+        status: $('status'), previa: $('previa'), compNum: $('compNum'), compDen: $('compDen'), delay: $('delay'),
         teclas: $('teclas'), totalTeclas: $('totalTeclas'),
         ajustes: $('ajustes'), enviar: $('btnEnviar'), som: $('som'),
         piano: $('piano'), faixaVisivel: $('faixaVisivel'),
@@ -40,7 +40,8 @@
                 nextId = s.nextId || 1;
                 lastValue = s.lastValue || 16;
                 sent = !!s.sent;
-                if (s.bpb) el.bpb.value = s.bpb;
+                if (s.comp) { el.compNum.value = s.comp.num; el.compDen.value = s.comp.den; }
+                else if (s.bpb) { el.compNum.value = s.bpb; el.compDen.value = 4; } // versão antiga
                 if (s.delay) el.delay.value = s.delay;
                 if (s.som) el.som.value = s.som;
                 if (s.modo) el.modo.value = s.modo;
@@ -59,15 +60,18 @@
     function save() {
         try {
             localStorage.setItem(CHAVE, JSON.stringify({
-                events, nextId, lastValue, sent, bpb: el.bpb.value, delay: el.delay.value,
+                events, nextId, lastValue, sent, comp: compasso(), delay: el.delay.value,
                 som: el.som.value, inicio, modo: el.modo.value, armadura: el.armadura.value,
             }));
         } catch (e) { /* ignora */ }
     }
 
+    function compasso() { return { num: Number(el.compNum.value), den: Number(el.compDen.value) }; }
+    function tamanhoCompasso() { const c = compasso(); return c.num * 64 / c.den; } // em 64 avos
+
     function payload() {
         return {
-            events, beatsPerBar: Number(el.bpb.value), delay: Number(el.delay.value),
+            events, compasso: compasso(), delay: Number(el.delay.value),
             modo: el.modo.value, armadura: Number(el.armadura.value),
         };
     }
@@ -215,7 +219,7 @@
             p.innerHTML = '<span class="vazio">A partitura aparece aqui conforme você escreve.</span>';
             return;
         }
-        const bar = Number(el.bpb.value) * 16;
+        const bar = tamanhoCompasso();
         let grupo = null;
         items.forEach((it, idx) => {
             const tp = it.tuplet;
@@ -551,7 +555,7 @@
         });
     });
     el.badge.addEventListener('click', () => { if ($('ajustes').classList.contains('hidden')) abreJanela('ajustes'); });
-    [el.bpb, el.delay, el.som, el.armadura].forEach((s) => s.addEventListener('change', changed));
+    [el.compNum, el.compDen, el.delay, el.som, el.armadura].forEach((s) => s.addEventListener('change', changed));
     el.modo.addEventListener('change', () => { changed(); verificaModo(); });
 
     // ---- entradas: teclado do computador ------------------------------------
@@ -585,6 +589,12 @@
     });
 
     $('sinal').addEventListener('click', () => show($('sinal').title));
+
+    // tema (aplicado cedo por tema.js; aqui só a escolha em ⚙)
+    if (window.MuseControlTema) {
+        $('tema').value = window.MuseControlTema.atual();
+        $('tema').addEventListener('change', () => window.MuseControlTema.muda($('tema').value));
+    }
 
     // ---- usado por variaveis.js -------------------------------------------
     // insere um trecho guardado depois de tudo que já foi escrito.

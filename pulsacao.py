@@ -22,7 +22,7 @@ Formato recebido do celular (t em ms; só serve para saber o que foi junto):
         {"type": "down", "id": 7, "midi": 60, "t": ...},   # 60 = Dó central (C4)
         {"type": "up", "id": 7, "t": ...}
      ],
-     "beatsPerBar": 4}
+     "compasso": {"num": 4, "den": 4}}   # só para cortar nas barras
 
 Envio ao MuseScore: a ALTURA vai por MIDI (porta "Midi Through", que o
 MuseScore escuta em Preferências → Áudio e MIDI → Entrada MIDI) e o resto
@@ -200,10 +200,23 @@ def _piece(units, base, dot):
     return {"units": units, "key": key, "dot": dot, "figure": name}
 
 
+DENOMINADORES = (2, 4, 8, 16)
+
+
+def bar_length(data):
+    """Tamanho do compasso em 64 avos. Ex.: 4/4 = 64, 3/8 = 24, 2/2 = 64."""
+    comp = data.get("compasso")
+    if comp is None:  # formato antigo: só o número de semínimas
+        return max(1, int(data.get("beatsPerBar", 4))) * QUARTER
+    num, den = int(comp.get("num", 4)), int(comp.get("den", 4))
+    if not 1 <= num <= 16 or den not in DENOMINADORES:
+        raise PulseError("Compasso inválido")
+    return num * 64 // den
+
+
 def analyze(data):
     """Recebe a gravação e devolve a lista de itens com suas figuras."""
-    bpb = int(data.get("beatsPerBar", 4))
-    bar = bpb * QUARTER if bpb > 0 else 10 ** 9
+    bar = bar_length(data)
     pulses, downs = _parse(data)
 
     items = []

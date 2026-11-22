@@ -22,6 +22,74 @@
     --tinta: #1a1a1a;
     --perigo: #e55a5a;
     --aviso: #f0b429;
+    --destaque-texto: #7cbcff;
+    --destaque-borda: #2f5a85;
+    --sinal-apagado: #5a5a5c;
+    --figura-filtro: invert(0.92); /* figuras pretas ficam claras no fundo escuro */
+    --aviso-fundo: #3d3524;
+    --aviso-borda: #6b5626;
+    --perigo-texto: #ff9b9b;
+    --perigo-fundo: #4a2a2a;
+    --perigo-borda: #6b3434;
+    --campo: #27272b;
+    --borda-campo: #5a5a5c;
+    color-scheme: dark;
+}
+
+/* tema claro do MuseScore 4 (⚙ → Tema). "Automático" segue o aparelho. */
+:root[data-tema="claro"] {
+    --fundo: #f5f5f6;
+    --fundo-area: #e1e3e6;
+    --painel: #e6e9ed;
+    --botao: #cfd5dd;
+    --botao-hover: #c2c9d2;
+    --divisor: #ced1d4;
+    --texto: #111132;
+    --texto-fraco: #5b5b70;
+    --destaque: #2093fe;
+    --destaque-fundo: #d6e9ff;
+    --destaque-texto: #0a64c2;
+    --destaque-borda: #8cc4ff;
+    --papel: #ffffff;
+    --sinal-apagado: #c3c7cc;
+    --figura-filtro: none;
+    --aviso: #8a5a00;
+    --aviso-fundo: #fff4d6;
+    --aviso-borda: #e8c46b;
+    --perigo-texto: #c53030;
+    --perigo-fundo: #fde2e2;
+    --perigo-borda: #f1a7a7;
+    --campo: #ffffff;
+    --borda-campo: #b9bec5;
+    color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+    :root[data-tema="auto"] {
+        --fundo: #f5f5f6;
+        --fundo-area: #e1e3e6;
+        --painel: #e6e9ed;
+        --botao: #cfd5dd;
+        --botao-hover: #c2c9d2;
+        --divisor: #ced1d4;
+        --texto: #111132;
+        --texto-fraco: #5b5b70;
+        --destaque: #2093fe;
+        --destaque-fundo: #d6e9ff;
+        --destaque-texto: #0a64c2;
+        --destaque-borda: #8cc4ff;
+        --papel: #ffffff;
+        --sinal-apagado: #c3c7cc;
+        --figura-filtro: none;
+        --aviso: #8a5a00;
+        --aviso-fundo: #fff4d6;
+        --aviso-borda: #e8c46b;
+        --perigo-texto: #c53030;
+        --perigo-fundo: #fde2e2;
+        --perigo-borda: #f1a7a7;
+        --campo: #ffffff;
+        --borda-campo: #b9bec5;
+        color-scheme: light;
+    }
 }
 
 html, body { height: 100%; }
@@ -71,7 +139,7 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .status.gravando::before { content: '● '; color: var(--perigo); }
 /* mensagem temporária no lugar do status (máx. 2 linhas) */
 .status.com-aviso {
-    color: #9fd0ff;
+    color: var(--destaque-texto);
     background: var(--destaque-fundo);
     border-radius: 3px;
     padding: 3px 8px;
@@ -87,7 +155,7 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 
 /* sinal de conexão: barras acesas = resposta rápida do servidor */
 .sinal { flex: 0 0 auto; position: relative; width: 34px; height: 30px; display: inline-flex; align-items: center; justify-content: center; background: transparent; }
-.sinal rect { fill: #5a5a5c; }
+.sinal rect { fill: var(--sinal-apagado); }
 .sinal[data-barras="1"] rect:nth-child(-n+1),
 .sinal[data-barras="2"] rect:nth-child(-n+2),
 .sinal[data-barras="3"] rect:nth-child(-n+3),
@@ -97,8 +165,8 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .sinal[data-barras="0"] .sem { display: block; }
 
 .badge { flex: 0 0 auto; display: inline-flex; align-items: center; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.badge.modo-midi { background: var(--destaque-fundo); color: #7cbcff; border-color: #2f5a85; }
-.badge.modo-teclado { background: #3d3524; color: var(--aviso); border-color: #6b5626; }
+.badge.modo-midi { background: var(--destaque-fundo); color: var(--destaque-texto); border-color: var(--destaque-borda); }
+.badge.modo-teclado { background: var(--aviso-fundo); color: var(--aviso); border-color: var(--aviso-borda); }
 
 /* janelas 🛠 e ⚙: como os diálogos do MuseScore, por cima da tela */
 .ajustes {
@@ -115,11 +183,13 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
     font: inherit;
     padding: 5px 8px;
     border-radius: 3px;
-    border: 1px solid #5a5a5c;
+    border: 1px solid var(--borda-campo);
     background: var(--botao);
     color: var(--texto);
 }
 .dica { font-size: 12px; color: var(--texto-fraco); line-height: 1.45; }
+.compasso { display: inline-flex; align-items: center; gap: 6px; }
+.compasso .barra-comp { font-size: 18px; color: var(--texto-fraco); }
 .dica b { color: var(--texto); font-weight: 600; }
 
 .fundo-janela { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 20; }
@@ -153,7 +223,7 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .ferramentas .setas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .ferramentas button { height: 40px; font-size: 13px; }
 .ferramentas .setas button { font-size: 16px; }
-.ferramentas .desligar { background: #4a2a2a; color: #ff9b9b; border-color: #6b3434; }
+.ferramentas .desligar { background: var(--perigo-fundo); color: var(--perigo-texto); border-color: var(--perigo-borda); }
 
 /* prévia: o "papel" da partitura */
 .previa {
@@ -203,7 +273,7 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 
 /* variáveis: chips com os trechos guardados */
 .variaveis { display: flex; align-items: center; gap: 6px; min-height: 36px; }
-.var-guardar { flex: 0 0 auto; height: 34px; padding: 0 12px; font-size: 13px; background: var(--destaque-fundo); color: #7cbcff; border-color: #2f5a85; }
+.var-guardar { flex: 0 0 auto; height: 34px; padding: 0 12px; font-size: 13px; background: var(--destaque-fundo); color: var(--destaque-texto); border-color: var(--destaque-borda); }
 .var-gerenciar { flex: 0 0 auto; width: 38px; height: 34px; font-size: 18px; line-height: 1; }
 .chips { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
 .chips > * { flex-shrink: 0; }
@@ -220,22 +290,22 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
     font: inherit;
     padding: 7px 9px;
     border-radius: 3px;
-    border: 1px solid #5a5a5c;
-    background: var(--fundo-area);
+    border: 1px solid var(--borda-campo);
+    background: var(--campo);
     color: var(--texto);
 }
 .ajustes input[type="text"]:focus { outline: none; border-color: var(--destaque); }
 .botoes-janela { display: flex; justify-content: flex-end; gap: 8px; }
 .botoes-janela button { height: 36px; padding: 0 16px; }
 button.principal { background: var(--destaque); color: #fff; }
-.dica.erro { color: #ff8f8f; }
+.dica.erro { color: var(--perigo-texto); }
 .lista-var { display: grid; gap: 6px; }
 .lista-var .linha { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--painel); border-radius: 3px; }
 .lista-var .linha .nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lista-var .linha small { color: var(--texto-fraco); }
 .lista-var .linha button { height: 32px; padding: 0 10px; font-size: 13px; }
-.lista-var .linha .apagar { color: #ff9b9b; }
-.lista-var .linha .apagar.confirmar { background: #6b3434; color: #fff; }
+.lista-var .linha .apagar { color: var(--perigo-texto); }
+.lista-var .linha .apagar.confirmar { background: var(--perigo); color: #fff; }
 
 /* inserir com opções (transpor / repetir) */
 .opcao { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -253,14 +323,14 @@ button.principal { background: var(--destaque); color: #fff; }
     align-items: center;
     gap: 6px;
     background: var(--destaque-fundo);
-    border: 1px solid #2f5a85;
-    color: #cfe6ff;
+    border: 1px solid var(--destaque-borda);
+    color: var(--texto);
     border-radius: 3px;
     padding: 6px 8px;
     font-size: 13px;
 }
 .editando span { flex: 1; }
-.editando b { color: #fff; }
+.editando b { color: var(--destaque-texto); }
 .editando button { height: 34px; padding: 0 12px; font-size: 13px; }
 
 /* área de tocar */
@@ -293,7 +363,7 @@ button.principal { background: var(--destaque); color: #fff; }
     touch-action: none;
     transition: flex-grow 0.25s ease, background 0.05s;
 }
-.faixa img { height: 26px; width: auto; filter: invert(0.92); } /* figuras claras no fundo escuro */
+.faixa img { height: 26px; width: auto; filter: var(--figura-filtro); }
 .faixa.atual { flex-grow: 1.45; background: var(--destaque-fundo); box-shadow: inset 0 -3px 0 var(--destaque); font-size: 16px; }
 .faixa.atual img { height: 32px; }
 .faixa.batida { background: var(--destaque); color: #fff; }
@@ -353,8 +423,8 @@ button.principal { background: var(--destaque); color: #fff; }
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #3d3524;
-    border: 1px solid #6b5626;
+    background: var(--aviso-fundo);
+    border: 1px solid var(--aviso-borda);
     color: var(--aviso);
     border-radius: 3px;
     padding: 6px 8px;
@@ -446,7 +516,7 @@ button.principal { background: var(--destaque); color: #fff; }
         color: #555;
     }
     .faixa { position: relative; }
-    .faixa .atalho { position: absolute; top: 8px; left: 10px; background: var(--botao); color: var(--texto); border-color: #66666a; }
+    .faixa .atalho { position: absolute; top: 8px; left: 10px; background: var(--botao); color: var(--texto); border-color: var(--borda-campo); }
     .tecla { position: relative; }
     .tecla .atalho { position: absolute; left: 50%; transform: translateX(-50%); }
     .tecla.branca .atalho { bottom: 36px; }

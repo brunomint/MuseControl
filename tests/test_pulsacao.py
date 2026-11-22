@@ -319,3 +319,39 @@ def test_ping():
     app = Flask(__name__, template_folder="../templates")
     app.register_blueprint(p.bp)
     assert app.test_client().get("/pulso/ping").json == {"ok": True}
+
+
+# --- compassos ------------------------------------------------------------
+
+def comp(script, num, den):
+    data = play(script)
+    del data["beatsPerBar"]
+    data["compasso"] = {"num": num, "den": den}
+    return figs(p.analyze(data))
+
+
+def test_tamanho_do_compasso():
+    assert p.bar_length({"compasso": {"num": 4, "den": 4}}) == 64
+    assert p.bar_length({"compasso": {"num": 3, "den": 8}}) == 24
+    assert p.bar_length({"compasso": {"num": 2, "den": 2}}) == 64
+    assert p.bar_length({"compasso": {"num": 7, "den": 16}}) == 28
+    assert p.bar_length({"beatsPerBar": 3}) == 48  # formato antigo continua valendo
+    for ruim in ({"num": 0, "den": 4}, {"num": 17, "den": 4}, {"num": 4, "den": 3}):
+        import pytest
+        with pytest.raises(p.PulseError):
+            p.bar_length({"compasso": ruim})
+
+
+def test_nota_cortada_na_barra_de_3_8():
+    # mínima começando no 1º tempo de 3/8: 3 colcheias no compasso + 1 no seguinte
+    assert comp("m:c", 3, 8) == [("c", "seminima.~colcheia")]
+
+
+def test_cinco_por_quatro_nao_corta():
+    # 5 tempos cabem no mesmo compasso: nada de barra no meio (em 4/4 seria cortado)
+    assert comp("q:c* q: q: q: q: r:c", 5, 4) == [("c", "semibreve~seminima")]
+    assert comp("q:c* q: q: q: q: q: r:c", 5, 4) == [("c", "semibreve~seminima~seminima")]
+
+
+def test_seis_por_oito_com_pulso_de_colcheia():
+    assert comp("e:c e:d e:e e:f e:g e:a", 6, 8) == [(x, "colcheia") for x in "cdefga"]

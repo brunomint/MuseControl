@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="escuro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MuseControl · Pulsação</title>
+    <script src="{{ url_for('static', filename='tema.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='pulso.css') }}">
 </head>
 <body>
@@ -90,13 +91,21 @@
 
     <div id="ajustes" class="ajustes janela hidden" role="dialog" aria-label="Ajustes">
         <div class="cabecalho"><span>⚙ Ajustes</span><button class="fechar" aria-label="Fechar">✕</button></div>
-        <label>Compasso
-            <select id="bpb">
-                <option value="4">4/4</option>
-                <option value="3">3/4</option>
-                <option value="2">2/4</option>
+        <label>Tema
+            <select id="tema">
+                <option value="escuro">Escuro (como o MuseScore)</option>
+                <option value="claro">Claro</option>
+                <option value="auto">Automático (segue o aparelho)</option>
             </select>
         </label>
+        <label>Compasso
+            <span class="compasso">
+                <select id="compNum" aria-label="Tempos por compasso"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option></select>
+                <span class="barra-comp">/</span>
+                <select id="compDen" aria-label="Figura do tempo"><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="16">16</option></select>
+            </span>
+        </label>
+        <p class="dica">Use o mesmo compasso da partitura no MuseScore (ele serve para as barras e ligaduras).</p>
         <label>Envio das notas
             <select id="modo">
                 <option value="auto">Automático</option>

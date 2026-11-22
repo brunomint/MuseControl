@@ -94,6 +94,10 @@ As notas são tocadas num **teclado de piano** na tela, com altura exata
 Duração, ligadura, pausa e quiálteras sempre vão por teclas (o MuseScore
 precisa estar em foco na hora de enviar).
 
+**Compasso:** em ⚙, qualquer compasso simples (1 a 16 / 2, 4, 8 ou 16: 5/4,
+2/2, 3/8, 7/8…). Use o mesmo da partitura no MuseScore: ele serve para desenhar
+as barras na prévia e ligar as notas que atravessam a barra.
+
 **Variáveis** (a ideia das variáveis do LilyPond): escreva um trecho, toque em
 **＋ Guardar** e dê um nome (ex.: "baixo Dó"). O nome vira um botão acima do
 piano; tocar nele insere o trecho de novo, quantas vezes quiser. "Desfazer pulso"
