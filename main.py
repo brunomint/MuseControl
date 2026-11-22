@@ -14,11 +14,13 @@ import qrcode
 from flask import Flask, redirect, render_template
 
 from pulsacao import bp as pulso_bp
+from projetos import bp as projetos_bp
 from variaveis import bp as variaveis_bp
 
 app = Flask(__name__)
 app.register_blueprint(pulso_bp)
 app.register_blueprint(variaveis_bp)
+app.register_blueprint(projetos_bp)
 
 porta = 8888
 

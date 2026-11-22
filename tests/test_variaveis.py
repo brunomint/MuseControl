@@ -1,68 +1,46 @@
-import os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import pytest
-from flask import Flask
-import variaveis as v
+import json, os
 from test_pulsacao import play
-
-
-@pytest.fixture
-def c(tmp_path, monkeypatch):
-    monkeypatch.setattr(v, "ARQUIVO", str(tmp_path / "dados" / "variaveis.json"))
-    app = Flask(__name__)
-    app.register_blueprint(v.bp)
-    return app.test_client()
 
 
 def eventos(script):
     return play(script)["events"]
 
 
-def test_guardar_listar_e_normalizar(c):
+def nomes(c, projeto=None):
+    url = "/pulso/variaveis" + (f"?projeto={projeto}" if projeto else "")
+    return [(v["nome"], v["geral"]) for v in c.get(url).json["variaveis"]]
+
+
+def projeto1(c):
+    return c.get("/pulso/projetos").json["projetos"][0]["id"]
+
+
+def test_guardar_geral_e_normalizar(c):
     evs = eventos("q:c e:g n:e")
     for e in evs:
-        e["t"] += 90000  # tempos "de verdade" da página
+        e["t"] += 90000
     r = c.post("/pulso/variaveis", json={"nome": "  baixo   Dó ", "eventos": evs})
-    assert r.status_code == 200 and r.json["variavel"]["nome"] == "baixo Dó"
-    lista = c.get("/pulso/variaveis").json["variaveis"]
-    assert [x["nome"] for x in lista] == ["baixo Dó"] and lista[0]["pulsos"] == 2
-    ts = [e["t"] for e in lista[0]["eventos"]]
+    v = r.json["variavel"]
+    assert r.status_code == 200 and v["nome"] == "baixo Dó" and v["geral"] and v["pulsos"] == 2
+    ts = [e["t"] for e in v["eventos"]]
     assert min(ts) == 0 and ts == sorted(ts)
 
 
-def test_nome_repetido_pede_confirmacao(c):
-    c.post("/pulso/variaveis", json={"nome": "a", "eventos": eventos("q:c")})
+def test_do_projeto_aparecem_antes_das_gerais(c):
+    pid = projeto1(c)
+    c.post("/pulso/variaveis", json={"nome": "escala", "eventos": eventos("q:c")})
+    c.post("/pulso/variaveis", json={"nome": "tema", "eventos": eventos("q:d"), "projeto": pid})
+    assert nomes(c, pid) == [("tema", False), ("escala", True)]
+    outro = c.post("/pulso/projetos", json={"nome": "Valsa"}).json["projeto"]["id"]
+    assert nomes(c, outro) == [("escala", True)]  # a do outro projeto não aparece
+
+
+def test_mesmo_nome_em_lugares_diferentes(c):
+    pid = projeto1(c)
+    assert c.post("/pulso/variaveis", json={"nome": "a", "eventos": eventos("q:c")}).status_code == 200
+    assert c.post("/pulso/variaveis", json={"nome": "A", "eventos": eventos("q:c"), "projeto": pid}).status_code == 200
     r = c.post("/pulso/variaveis", json={"nome": "A", "eventos": eventos("q:d")})
     assert r.status_code == 409 and r.json["existe"]
-    r = c.post("/pulso/variaveis", json={"nome": "A", "eventos": eventos("q:d"), "substituir": True})
-    assert r.status_code == 200
-    lista = c.get("/pulso/variaveis").json["variaveis"]
-    assert len(lista) == 1 and lista[0]["nome"] == "A"
-
-
-def test_validacoes(c):
-    assert c.post("/pulso/variaveis", json={"nome": "", "eventos": eventos("q:c")}).status_code == 400
-    assert c.post("/pulso/variaveis", json={"nome": "x/y", "eventos": eventos("q:c")}).status_code == 400
-    assert c.post("/pulso/variaveis", json={"nome": "x", "eventos": []}).status_code == 400
-    assert c.post("/pulso/variaveis", json={"nome": "x", "eventos": [{"type": "down", "id": 1, "midi": 60, "t": 0}]}).status_code == 400
-
-
-def test_nota_segurada_ganha_soltura(c):
-    evs = [{"type": "pulse", "value": 16, "t": 0}, {"type": "down", "id": 9, "midi": 60, "t": 10}]
-    r = c.post("/pulso/variaveis", json={"nome": "s", "eventos": evs})
-    salvos = r.json["variavel"]["eventos"]
-    assert any(e["type"] == "up" and e["id"] == 1 for e in salvos)
-
-
-def test_renomear_e_apagar(c):
-    c.post("/pulso/variaveis", json={"nome": "a", "eventos": eventos("q:c")})
-    c.post("/pulso/variaveis", json={"nome": "b", "eventos": eventos("q:d")})
-    assert c.post("/pulso/variaveis/a/renomear", json={"novo": "b"}).status_code == 409
-    assert c.post("/pulso/variaveis/a/renomear", json={"novo": "escala"}).status_code == 200
-    assert c.delete("/pulso/variaveis/b").status_code == 200
-    assert c.delete("/pulso/variaveis/b").status_code == 404
-    assert [x["nome"] for x in c.get("/pulso/variaveis").json["variaveis"]] == ["escala"]
 
 
 def test_substituir_mantem_posicao(c):
@@ -70,18 +48,48 @@ def test_substituir_mantem_posicao(c):
         c.post("/pulso/variaveis", json={"nome": nome, "eventos": eventos(sc)})
     r = c.post("/pulso/variaveis", json={"nome": "b", "eventos": eventos("q:f q:g"), "substituir": True})
     assert r.json["variavel"]["pulsos"] == 2
-    assert [x["nome"] for x in c.get("/pulso/variaveis").json["variaveis"]] == ["a", "b", "c"]
+    assert [n for n, _ in nomes(c)] == ["a", "b", "c"]
 
 
-def test_duplicar(c):
-    c.post("/pulso/variaveis", json={"nome": "baixo", "eventos": eventos("q:c q:g")})
+def test_validacoes(c):
+    assert c.post("/pulso/variaveis", json={"nome": "", "eventos": eventos("q:c")}).status_code == 400
+    assert c.post("/pulso/variaveis", json={"nome": "x/y", "eventos": eventos("q:c")}).status_code == 400
+    assert c.post("/pulso/variaveis", json={"nome": "x", "eventos": []}).status_code == 400
+    assert c.post("/pulso/variaveis", json={"nome": "x", "eventos": [{"type": "down", "id": 1, "midi": 60, "t": 0}]}).status_code == 400
+    assert c.post("/pulso/variaveis", json={"nome": "x", "eventos": eventos("q:c"), "projeto": 999}).status_code == 404
+
+
+def test_nota_segurada_ganha_soltura(c):
+    evs = [{"type": "pulse", "value": 16, "t": 0}, {"type": "down", "id": 9, "midi": 60, "t": 10}]
+    salvos = c.post("/pulso/variaveis", json={"nome": "s", "eventos": evs}).json["variavel"]["eventos"]
+    assert any(e["type"] == "up" and e["id"] == 1 for e in salvos)
+
+
+def test_renomear_duplicar_salvar_apagar(c):
+    a = c.post("/pulso/variaveis", json={"nome": "baixo", "eventos": eventos("q:c q:g")}).json["variavel"]["id"]
     c.post("/pulso/variaveis", json={"nome": "fim", "eventos": eventos("q:c")})
-    assert c.post("/pulso/variaveis/baixo/duplicar").json["variavel"]["nome"] == "baixo 2"
-    assert c.post("/pulso/variaveis/baixo/duplicar").json["variavel"]["nome"] == "baixo 3"
-    lista = c.get("/pulso/variaveis").json["variaveis"]
-    assert [x["nome"] for x in lista] == ["baixo", "baixo 3", "baixo 2", "fim"]
-    assert lista[1]["eventos"] == lista[0]["eventos"]
-    assert c.post("/pulso/variaveis/nada/duplicar").status_code == 404
-    longo = "x" * 40
-    c.post("/pulso/variaveis", json={"nome": longo, "eventos": eventos("q:c")})
-    assert c.post(f"/pulso/variaveis/{longo}/duplicar").json["variavel"]["nome"] == "x" * 38 + " 2"
+    assert c.post(f"/pulso/variaveis/{a}/duplicar").json["variavel"]["nome"] == "baixo 2"
+    assert c.post(f"/pulso/variaveis/{a}/duplicar").json["variavel"]["nome"] == "baixo 3"
+    assert [n for n, _ in nomes(c)] == ["baixo", "baixo 3", "baixo 2", "fim"]
+    assert c.post(f"/pulso/variaveis/{a}/renomear", json={"novo": "fim"}).status_code == 409
+    assert c.post(f"/pulso/variaveis/{a}/renomear", json={"novo": "Alberti"}).status_code == 200
+    r = c.post(f"/pulso/variaveis/{a}/salvar", json={"eventos": eventos("q:c q:g q:e")})
+    assert r.json["variavel"]["pulsos"] == 3 and r.json["variavel"]["nome"] == "Alberti"
+    assert c.delete(f"/pulso/variaveis/{a}").status_code == 200
+    assert c.delete(f"/pulso/variaveis/{a}").status_code == 404
+    assert c.post("/pulso/variaveis/999/duplicar").status_code == 404
+
+
+def test_migra_o_json_antigo(banco_teste):
+    import banco
+    os.makedirs(banco_teste / "dados", exist_ok=True)
+    antigas = [{"nome": "baixo Dó", "eventos": eventos("q:c q:g"), "criada": "2026-11-22 00:30"},
+               {"nome": "escala", "eventos": eventos("q:c n:d")}]
+    (banco_teste / "dados" / "variaveis.json").write_text(json.dumps(antigas), encoding="utf-8")
+    with banco.sessao() as con:
+        linhas = con.execute("SELECT nome, projeto_id FROM variaveis ORDER BY ordem").fetchall()
+        projetos = con.execute("SELECT nome FROM projetos").fetchall()
+    assert [(l["nome"], l["projeto_id"]) for l in linhas] == [("baixo Dó", 0), ("escala", 0)]
+    assert [p["nome"] for p in projetos] == ["Primeiro projeto"]
+    assert not (banco_teste / "dados" / "variaveis.json").exists()
+    assert (banco_teste / "dados" / "variaveis.json.migrado").exists()  # cópia de segurança

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MuseControl</title>
+<style>
+    /* mesmas cores do MuseScore 4 (tema escuro) */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Fira Sans', 'Segoe UI', sans-serif;
+        background: #27272b;
+        color: #ebebeb;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+    .caixa { width: 100%; max-width: 420px; display: grid; gap: 16px; text-align: center; }
+    .logo { width: 72px; height: 72px; margin: 0 auto; border-radius: 50%; background: #2093fe; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #fff; }
+    h1 { font-size: 22px; font-weight: 600; }
+    #status { color: #a8a8aa; font-size: 15px; min-height: 22px; }
+    #aviso { background: #3d3524; border: 1px solid #6b5626; color: #f0b429; border-radius: 3px; padding: 8px; font-size: 14px; }
+    .barra { height: 4px; background: #363638; border-radius: 2px; overflow: hidden; }
+    .barra div { height: 100%; width: 0; background: #2093fe; transition: width 0.2s; }
+    #achados { display: grid; gap: 8px; }
+    button, input { font: inherit; border-radius: 3px; }
+    button { border: 1px solid transparent; background: #4c4c4d; color: #ebebeb; height: 46px; padding: 0 14px; font-size: 15px; }
+    button.principal { background: #2093fe; color: #fff; font-weight: 600; }
+    .manual { display: flex; gap: 8px; }
+    .manual input { flex: 1; min-width: 0; height: 46px; padding: 0 10px; border: 1px solid #5a5a5c; background: #2d2d30; color: #ebebeb; font-size: 16px; }
+    .dica { color: #a8a8aa; font-size: 13px; line-height: 1.45; }
+    .oculto { display: none !important; }
+</style>
+</head>
+<body>
+<div class="caixa">
+    <div class="logo">♩</div>
+    <h1>MuseControl</h1>
+    <p id="aviso" class="oculto"></p>
+    <p id="status">Procurando o computador…</p>
+    <div class="barra" id="barra"><div id="progresso"></div></div>
+    <div id="achados"></div>
+    <button id="procurarDeNovo" class="oculto">Procurar de novo</button>
+    <div class="manual">
+        <input id="ip" type="text" inputmode="decimal" placeholder="IP do computador (ex.: 192.168.0.7)" autocomplete="off">
+        <button id="conectar" class="principal">Conectar</button>
+    </div>
+    <p class="dica">No computador, abra o MuseControl (python main.py). O celular e o computador precisam estar no mesmo Wi-Fi.</p>
+</div>
+<script>
+(function () {
+    'use strict';
+    var $ = function (id) { return document.getElementById(id); };
+    var app = window.AndroidMC;
+    var hash = decodeURIComponent(location.hash.slice(1));
+    var trocar = hash === 'trocar';
+    var achados = [];
+    var procurando = false;
+
+    function status(t) { $('status').textContent = t; }
+    function aviso(t) { $('aviso').textContent = t || ''; $('aviso').classList.toggle('oculto', !t); }
+
+    function procurar() {
+        if (procurando) return;
+        procurando = true;
+        achados = [];
+        $('achados').innerHTML = '';
+        $('procurarDeNovo').classList.add('oculto');
+        $('barra').classList.remove('oculto');
+        $('progresso').style.width = '0';
+        status('Procurando o computador na rede…');
+        app.procurar();
+    }
+
+    window.mcAchou = function (host) {
+        if (achados.indexOf(host) >= 0) return;
+        achados.push(host);
+        var b = document.createElement('button');
+        b.className = 'principal';
+        b.textContent = 'Abrir ' + host.replace(':8888', '');
+        b.onclick = function () { app.abrir(host); };
+        $('achados').appendChild(b);
+    };
+    window.mcProgresso = function (feitos, total) {
+        $('progresso').style.width = Math.round(100 * feitos / total) + '%';
+    };
+    window.mcFim = function (n) {
+        procurando = false;
+        $('barra').classList.add('oculto');
+        $('procurarDeNovo').classList.remove('oculto');
+        if (n === 1 && !trocar) { status('Achei! Abrindo…'); app.abrir(achados[0]); return; }
+        if (n === 0) status('Não achei o MuseControl nesta rede. Ele está aberto no computador?');
+        else status(n === 1 ? 'Achei 1 computador:' : 'Achei ' + n + ' computadores. Escolha um:');
+    };
+    window.mcTeste = function (host, ok) {
+        if (ok) { status('Conectando…'); app.abrir(host); return; }
+        if (manual) { manual = false; status('Não respondeu em ' + host.replace(':8888', '') + '. Confira o IP.'); return; }
+        procurar(); // o último computador não respondeu: procura na rede
+    };
+
+    var manual = false;
+    $('conectar').onclick = function () {
+        var ip = $('ip').value.trim();
+        if (!ip) { $('ip').focus(); return; }
+        manual = true;
+        status('Testando ' + ip + '…');
+        app.testar(ip);
+    };
+    $('ip').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') $('conectar').click(); });
+    $('procurarDeNovo').onclick = procurar;
+
+    if (!app) { status('Esta página só funciona dentro do app.'); return; }
+    if (hash && !trocar) aviso(hash);
+    var ultimo = app.ultimoServidor();
+    if (ultimo) $('ip').value = ultimo.replace(':8888', '');
+    if (ultimo && !trocar) {
+        status('Conectando em ' + ultimo.replace(':8888', '') + '…');
+        app.testar(ultimo);
+    } else {
+        procurar();
+    }
+})();
+</script>
+</body>
+</html>

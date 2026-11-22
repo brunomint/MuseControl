@@ -1,5 +1,6 @@
 // Variáveis (ideia do LilyPond): guardar o que está escrito com um nome e
-// inserir de novo com um toque. Ficam salvas no computador (variaveis.py).
+// inserir de novo com um toque. Ficam salvas no computador (variaveis.py):
+// as do projeto aberto e as gerais (🌐), que valem em todos os projetos.
 (function () {
     'use strict';
 
@@ -15,8 +16,16 @@
     }
 
     // ---- chips ------------------------------------------------------------
+    function projetoAtual() {
+        return window.MuseControlProjeto ? window.MuseControlProjeto.atual() : null;
+    }
+    function pausaRascunho(sim) {
+        if (window.MuseControlProjeto) window.MuseControlProjeto.pausa(sim);
+    }
+
     function carrega() {
-        return pedido('/pulso/variaveis').then((d) => {
+        const p = projetoAtual();
+        return pedido('/pulso/variaveis' + (p ? '?projeto=' + p : '')).then((d) => {
             lista = d.variaveis || [];
             desenhaChips();
             desenhaLista();
@@ -32,8 +41,8 @@
         }
         lista.forEach((v) => {
             const b = document.createElement('button');
-            b.className = 'chip';
-            b.title = 'Inserir "' + v.nome + '"';
+            b.className = 'chip' + (v.geral ? ' geral' : '');
+            b.title = 'Inserir "' + v.nome + '"' + (v.geral ? ' (biblioteca geral)' : '');
             b.textContent = v.nome;
             const n = document.createElement('small');
             n.textContent = v.pulsos + 'p';
@@ -128,6 +137,7 @@
         $('confirmarGuardar').textContent = 'Guardar';
         $('guardarPulsos').textContent = pulsos + (pulsos === 1 ? ' pulso' : ' pulsos');
         $('nomeVar').value = '';
+        $('varGeral').checked = false;
         app.abreJanela('janelaGuardar');
         setTimeout(() => $('nomeVar').focus(), 50);
     });
@@ -135,7 +145,8 @@
     function guardar() {
         const nome = $('nomeVar').value.trim();
         if (!nome) { erroGuardar('Dê um nome para a variável'); return; }
-        pedido('/pulso/variaveis', json('POST', { nome, eventos: app.eventos(), substituir }))
+        const projeto = $('varGeral').checked ? null : projetoAtual();
+        pedido('/pulso/variaveis', json('POST', { nome, eventos: app.eventos(), substituir, projeto }))
             .then((d) => {
                 if (d.ok) {
                     app.fechaJanelas();
@@ -173,7 +184,7 @@
             nome.className = 'nome';
             nome.textContent = v.nome + ' ';
             const n = document.createElement('small');
-            n.textContent = v.pulsos + (v.pulsos === 1 ? ' pulso' : ' pulsos');
+            n.textContent = v.pulsos + (v.pulsos === 1 ? ' pulso' : ' pulsos') + (v.geral ? ' · 🌐 geral' : '');
             nome.appendChild(n);
             const ren = document.createElement('button');
             ren.textContent = 'Renomear';
@@ -188,7 +199,7 @@
                     setTimeout(() => { apa.classList.remove('confirmar'); apa.textContent = 'Apagar'; }, 3000);
                     return;
                 }
-                pedido('/pulso/variaveis/' + encodeURIComponent(v.nome), { method: 'DELETE' })
+                pedido('/pulso/variaveis/' + v.id, { method: 'DELETE' })
                     .then((d) => { app.mostra(d.ok ? 'Variável apagada' : d.erro); carrega(); });
             });
             const ins = document.createElement('button');
@@ -200,7 +211,7 @@
             const dup = document.createElement('button');
             dup.textContent = 'Duplicar';
             dup.addEventListener('click', () => {
-                pedido('/pulso/variaveis/' + encodeURIComponent(v.nome) + '/duplicar', json('POST'))
+                pedido('/pulso/variaveis/' + v.id + '/duplicar', json('POST'))
                     .then((d) => { app.mostra(d.ok ? 'Cópia criada: "' + d.variavel.nome + '"' : d.erro); carrega(); })
                     .catch(() => app.mostra('Sem conexão com o computador'));
             });
@@ -226,7 +237,7 @@
         const salva = () => {
             const novo = campo.value.trim();
             if (!novo || novo === v.nome) { desenhaLista(); return; }
-            pedido('/pulso/variaveis/' + encodeURIComponent(v.nome) + '/renomear', json('POST', { novo }))
+            pedido('/pulso/variaveis/' + v.id + '/renomear', json('POST', { novo }))
                 .then((d) => { if (!d.ok) app.mostra(d.erro); carrega(); });
         };
         ok.addEventListener('click', salva);
@@ -241,7 +252,7 @@
     // carrega a variável na área de escrita; o que estava escrito fica guardado
     // e volta ao salvar ou cancelar.
     const CHAVE_EDICAO = 'musecontrol-edicao';
-    let edicao = null; // { nome, antes: [...] }
+    let edicao = null; // { id, nome, antes: [...] }
     function guardaEdicao() {
         try {
             if (edicao) localStorage.setItem(CHAVE_EDICAO, JSON.stringify(edicao));
@@ -255,21 +266,30 @@
     function iniciaEdicao(v) {
         if (edicao) { app.mostra('Termine de editar "' + edicao.nome + '" primeiro'); return; }
         app.fechaJanelas();
-        edicao = { nome: v.nome, antes: app.trocaEventos([]) };
+        pausaRascunho(true); // a tela vai mostrar a variável, não o rascunho do projeto
+        edicao = { id: v.id, nome: v.nome, antes: null };
+        guardaEdicao(); // marca "editando" antes de trocar o conteúdo
+        edicao.antes = app.trocaEventos([]);
         app.insereEventos(v.eventos, { semGrupo: true });
         guardaEdicao();
         mostraFaixa();
     }
     function terminaEdicao() {
-        app.trocaEventos(edicao.antes);
+        const antes = edicao.antes || [];
         edicao = null;
         guardaEdicao();
+        app.trocaEventos(antes);
+        pausaRascunho(false);
         mostraFaixa();
     }
     $('salvarEdicao').addEventListener('click', () => {
         const eventos = app.eventos();
         if (!eventos.some((e) => e.type === 'pulse')) { app.mostra('A variável ficou vazia. Escreva algo ou cancele.'); return; }
-        pedido('/pulso/variaveis', json('POST', { nome: edicao.nome, eventos, substituir: true }))
+        // edições antigas (de antes do banco) não têm id: acha pelo nome
+        const id = edicao.id || (lista.find((v) => v.nome === edicao.nome) || {}).id;
+        const req = id ? pedido('/pulso/variaveis/' + id + '/salvar', json('POST', { eventos }))
+            : pedido('/pulso/variaveis', json('POST', { nome: edicao.nome, eventos, substituir: true }));
+        req
             .then((d) => {
                 if (!d.ok) { app.mostra(d.erro || 'Erro ao salvar'); return; }
                 app.mostra('Variável "' + edicao.nome + '" salva');
@@ -291,5 +311,6 @@
         carrega();
     });
 
+    window.addEventListener('musecontrol:projeto', carrega); // trocou de projeto
     carrega();
 })();

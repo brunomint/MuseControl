@@ -95,6 +95,12 @@ As notas são tocadas num **teclado de piano** na tela, com altura exata
 Duração, ligadura, pausa e quiálteras sempre vão por teclas (o MuseScore
 precisa estar em foco na hora de enviar).
 
+**Projetos** (um por música): a aba 📁 acima da prévia mostra o projeto aberto;
+tocando nela você cria, abre, renomeia, exporta/importa (.json) e apaga projetos.
+Cada projeto guarda o compasso, a armadura, as variáveis e o rascunho (o que está
+escrito e ainda não foi enviado), que salva sozinho no computador. Se dois
+aparelhos mexem no mesmo projeto, o app avisa e fica com a versão mais nova.
+
 **Compasso:** em ⚙, qualquer compasso simples (1 a 16 / 2, 4, 8 ou 16: 5/4,
 2/2, 3/8, 7/8…). Use o mesmo da partitura no MuseScore: ele serve para desenhar
 as barras na prévia e ligar as notas que atravessam a barra.
@@ -102,13 +108,17 @@ as barras na prévia e ligar as notas que atravessam a barra.
 **Variáveis** (a ideia das variáveis do LilyPond): escreva um trecho, toque em
 **＋ Guardar** e dê um nome (ex.: "baixo Dó"). O nome vira um botão acima do
 piano; tocar nele insere o trecho de novo, quantas vezes quiser. "Desfazer pulso"
-logo depois tira a variável inserida inteira. **Segurar** o nome (ou clicar com
+logo depois tira a variável inserida inteira. Ao guardar, marque 🌐 para a
+variável ir para a **biblioteca geral** (aparece em todos os projetos). **Segurar** o nome (ou clicar com
 o botão direito) abre as opções: **transpor** (semitom ou oitava) e **repetir**
 (até 16×). O botão ⋯ lista as variáveis para inserir com opções, **editar**
 (o trecho volta para a área de escrita; ao salvar ou cancelar, volta o que você
 estava escrevendo), duplicar, renomear e apagar. As
-variáveis ficam salvas no computador (`dados/variaveis.json`), valendo para
-todos os aparelhos.
+variáveis ficam salvas no computador, valendo para todos os aparelhos.
+
+**Onde fica salvo:** no banco SQLite `dados/musecontrol.db` (fora do Git) ficam
+projetos, variáveis e rascunhos. No navegador de cada aparelho ficam só as
+preferências do aparelho (tema, som, posição do piano, modo de envio).
 
 Exemplos: colcheia + 2 semicolcheias = ♪+Dó, ♪+Ré, Mi ·
 colcheia pontuada + semicolcheia = ♪+Dó (segura), ♬, solta, ♬+Ré ·
@@ -126,6 +136,19 @@ Backspace ou Ctrl+Z = desfazer, Enter = enviar.
 
 Testes: `pytest tests`
 
+## 📲 App Android
+
+A pasta `android/` tem um app que abre o MuseControl em tela cheia (WebView):
+acha o computador sozinho na rede (testa `:8888/pulso/ping`), lembra o último,
+mantém a tela acesa, vibra no pulso e o botão Voltar fecha as janelas.
+No 🛠 aparece "Trocar de computador".
+
+```bash
+cd android
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ./gradlew testDebugUnitTest assembleDebug
+# APK: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
 ## 📱 Telas
 
 - **Celular em pé:** piano em cima (com ◀ ‹ › ▶), PULSO embaixo, prévia da partitura no topo.
@@ -139,12 +162,17 @@ MuseControl/
 ├── main.py                 # Sobe o servidor, QR code, desligar
 ├── pulsacao.py             # Modo Pulsação: regras do ritmo e envio ao MuseScore
 ├── variaveis.py            # Variáveis: trechos guardados com nome
-├── dados/                  # Variáveis salvas (criada sozinha, fora do Git)
+├── projetos.py             # Projetos (um por música) e rascunho com versão
+├── banco.py                # Banco SQLite (dados/musecontrol.db)
+├── dados/                  # O banco (criado sozinho, fora do Git)
+├── android/                # App Android (WebView)
 ├── requirements.txt        # Dependências Python
 ├── tests/                  # Testes (pytest)
 ├── static/
 │   ├── pulso.js / pulso.css  # Tela do celular (pulso, piano, prévia)
 │   ├── variaveis.js        # Botões e janelas das variáveis
+│   ├── projetos.js         # Aba e janela de projetos, rascunho que salva sozinho
+│   ├── tema.js             # Tema escuro/claro antes da página aparecer
 │   ├── fonts/              # Fira Sans (a fonte do MuseScore)
 │   ├── notas_musicais/     # Ícones das figuras
 │   └── qrcode.png          # QR Code gerado automaticamente

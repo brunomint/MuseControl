@@ -271,6 +271,25 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .barra { width: 2px; align-self: stretch; background: var(--tinta); margin: 0 4px; }
 .previa > * { flex-shrink: 0; }
 
+/* aba do projeto: como a aba da partitura no MuseScore */
+.aba-projeto { display: flex; align-items: center; gap: 8px; margin-top: -4px; }
+.aba {
+    display: inline-flex; align-items: center; gap: 6px; max-width: 75%;
+    height: 30px; padding: 0 10px; font-size: 13px;
+    background: var(--painel); border-bottom: 2px solid var(--destaque); border-radius: 3px 3px 0 0;
+}
+.aba #nomeProjeto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aba-seta { color: var(--texto-fraco); font-size: 11px; }
+.salvo { font-size: 12px; color: var(--texto-fraco); white-space: nowrap; }
+.salvo.erro { color: var(--perigo-texto); }
+.novo-projeto { display: flex; gap: 6px; }
+.novo-projeto button { height: 36px; padding: 0 12px; }
+.lista-var .linha.atual { box-shadow: inset 3px 0 0 var(--destaque); }
+.lista-var .linha .atual-tag { color: var(--destaque-texto); font-size: 12px; }
+.importar { cursor: pointer; display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 3px; background: var(--botao); font-weight: 500; }
+.marcar { justify-content: flex-start !important; gap: 8px; font-size: 13px; }
+.chip.geral::before { content: '🌐'; font-size: 11px; }
+
 /* variáveis: chips com os trechos guardados */
 .variaveis { display: flex; align-items: center; gap: 6px; min-height: 36px; }
 .var-guardar { flex: 0 0 auto; height: 34px; padding: 0 12px; font-size: 13px; background: var(--destaque-fundo); color: var(--destaque-texto); border-color: var(--destaque-borda); }
@@ -478,7 +497,7 @@ button.principal { background: var(--destaque); color: #fff; }
 @media (min-width: 900px) and (min-height: 600px) {
     body { padding: 0 20px 20px; gap: 16px; font-size: 16px; }
     .topo { margin: 0 -20px; padding: 8px 20px; }
-    .topo, .previa, .variaveis, .palco, .acoes, .teclas, .corrigir, .editando { width: 100%; max-width: 1400px; align-self: center; }
+    .topo, .aba-projeto, .previa, .variaveis, .palco, .acoes, .teclas, .corrigir, .editando { width: 100%; max-width: 1400px; align-self: center; }
     .chip, .var-guardar { height: 40px; font-size: 15px; }
     .var-gerenciar { height: 40px; width: 44px; }
     .topo { max-width: none; width: auto; align-self: stretch; }

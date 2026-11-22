@@ -95,10 +95,18 @@
         sent = false;
     }
 
+    // no app Android a vibração vem da ponte nativa (a WebView não vibra sozinha)
+    function vibra(ms) {
+        try {
+            if (window.AndroidMC) window.AndroidMC.vibrar(ms);
+            else if (navigator.vibrate) navigator.vibrate(ms);
+        } catch (e) { /* sem vibração */ }
+    }
+
     function pulse(t, value) {
         freshIfSent();
         events.push({ type: 'pulse', value: value, t: t });
-        if (navigator.vibrate) navigator.vibrate(12);
+        vibra(12);
         changed();
     }
 
@@ -147,8 +155,10 @@
     // ---- desenho --------------------------------------------------------
     function pulseCount() { return events.filter((e) => e.type === 'pulse').length; }
 
+    const ouvintes = []; // projetos.js: salva o rascunho no computador
     function changed() {
         save();
+        ouvintes.forEach((fn) => { try { fn(); } catch (e) { /* ignora */ } });
         const n = pulseCount();
         statusBase = sent ? 'Enviado. O próximo toque começa outro trecho'
             : n ? n + ' pulso(s)'
@@ -167,12 +177,15 @@
 
     let analyzing = null;
     let again = false;
+    let analise = 0; // número da última análise pedida: resposta mais velha é ignorada
     function analyze() {
+        const numero = ++analise;
         if (!pulseCount()) { draw([]); el.teclas.textContent = ''; el.totalTeclas.textContent = '0'; return; }
         if (analyzing) { again = true; return; }
         analyzing = fetch('/pulso/analisar', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload()),
         }).then((r) => r.json()).then((d) => {
+            if (numero !== analise) return; // o conteúdo mudou enquanto esta análise ia e voltava
             if (!d.ok) { show(d.erro || 'Erro'); return; }
             draw(d.itens);
             el.teclas.textContent = d.aviso ? '⚠ ' + d.aviso : d.teclas;
@@ -556,6 +569,9 @@
     });
     el.badge.addEventListener('click', () => { if ($('ajustes').classList.contains('hidden')) abreJanela('ajustes'); });
     [el.compNum, el.compDen, el.delay, el.som, el.armadura].forEach((s) => s.addEventListener('change', changed));
+    // compasso e armadura são do projeto: avisa projetos.js
+    [el.compNum, el.compDen, el.armadura].forEach((s) => s.addEventListener('change', () =>
+        window.dispatchEvent(new CustomEvent('musecontrol:ajustes'))));
     el.modo.addEventListener('change', () => { changed(); verificaModo(); });
 
     // ---- entradas: teclado do computador ------------------------------------
@@ -646,10 +662,29 @@
         return antigo;
     }
 
+    // botão Voltar do app Android: fecha a janela aberta (true = tratado)
+    window.MuseControlVoltar = function () {
+        if (!janelaAberta()) return false;
+        fechaJanelas();
+        return true;
+    };
+    if (window.AndroidMC) {
+        $('btnTrocarPc').classList.remove('hidden');
+        $('btnTrocarPc').addEventListener('click', () => window.AndroidMC.trocarServidor());
+    }
+
     window.MuseControl = {
         eventos: () => events.map((e) => Object.assign({}, e)),
         insereEventos,
         trocaEventos,
+        aoMudar: (fn) => ouvintes.push(fn),
+        compasso,
+        armadura: () => Number(el.armadura.value),
+        defineAjustes(comp, arm) { // vindo do projeto (não dispara 'musecontrol:ajustes')
+            if (comp) { el.compNum.value = comp.num; el.compDen.value = comp.den; }
+            if (arm !== undefined && arm !== null) el.armadura.value = arm;
+            changed();
+        },
         nomeMidi,
         mostra: show,
         abreJanela,
