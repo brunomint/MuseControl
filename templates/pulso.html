@@ -10,12 +10,23 @@
     <header class="topo">
         <button id="btnFerramentas" class="icone" aria-label="Ferramentas do MuseScore">🛠</button>
         <span id="status" class="status">Toque uma faixa do PULSO junto com a 1ª nota</span>
+        <button id="sinal" class="sinal" aria-label="Conexão com o computador">
+            <svg viewBox="0 0 20 16" width="22" height="18" aria-hidden="true">
+                <rect x="1" y="11" width="3" height="4" rx="1"/>
+                <rect x="6" y="8" width="3" height="7" rx="1"/>
+                <rect x="11" y="5" width="3" height="10" rx="1"/>
+                <rect x="16" y="1" width="3" height="14" rx="1"/>
+            </svg>
+            <span class="sem">✕</span>
+        </button>
         <button id="modoBadge" class="badge" title="Como as notas vão para o MuseScore">…</button>
         <button id="btnAjustes" class="icone" aria-label="Ajustes">⚙</button>
     </header>
 
-    <div id="ferramentas" class="ajustes ferramentas hidden">
-        <p class="titulo">No MuseScore</p>
+    <div id="fundoJanela" class="fundo-janela hidden"></div>
+
+    <div id="ferramentas" class="ajustes janela ferramentas hidden" role="dialog" aria-label="Ferramentas do MuseScore">
+        <div class="cabecalho"><span>🛠 No MuseScore</span><button class="fechar" aria-label="Fechar">✕</button></div>
         <div class="grade">
             <button data-cmd="insercao">Inserção (N)</button>
             <button data-cmd="sair">Sair (Esc)</button>
@@ -33,7 +44,8 @@
         <button id="btnDesligar" class="desligar">⏻ Desligar o MuseControl</button>
     </div>
 
-    <div id="ajustes" class="ajustes hidden">
+    <div id="ajustes" class="ajustes janela hidden" role="dialog" aria-label="Ajustes">
+        <div class="cabecalho"><span>⚙ Ajustes</span><button class="fechar" aria-label="Fechar">✕</button></div>
         <label>Compasso
             <select id="bpb">
                 <option value="4">4/4</option>
@@ -83,7 +95,7 @@
         </label>
         <p class="dica"><b>Como escrever:</b> toque a faixa do PULSO junto com a 1ª nota. Notas sozinhas depois dividem o pulso (2 = metades, 3 = tercina, 4 = quartos…). PULSO com a nota segurada prolonga; PULSO sem nota segurada = pausa.</p>
         <p class="dica">No MuseScore: janela em foco, modo de inserção (N), cursor no início do compasso. Em Preferências → Áudio e MIDI, a Entrada MIDI precisa ser "Midi Through" (as alturas vão por MIDI).</p>
-        <p class="dica">No computador: 6 / 5 / 4 / 3 = pulso de mínima / semínima / colcheia / semicolcheia · Espaço = repete o último · C D E F G A B = teclas brancas da primeira oitava visível (segure para prolongar) · ← → = muda a oitava · Backspace = desfazer · Enter = enviar</p>
+        <p class="dica"><b>Teclado do computador:</b> 1 / 2 / 3 / 4 = pulso de mínima / semínima / colcheia / semicolcheia · Espaço = repete o último pulso · C D E F G A B = notas da 1ª oitava visível (segure para prolongar) · Shift + letra = sustenido · ← → = muda a oitava · Backspace ou Ctrl+Z = desfazer pulso · Enter = enviar · Esc = fecha esta janela</p>
     </div>
 
     <section id="previa" class="previa" aria-live="polite">
@@ -92,10 +104,10 @@
 
     <main class="palco">
         <div id="pulso" class="pulso" role="group" aria-label="Pulso">
-            <button class="faixa" data-value="32"><img src="static/notas_musicais/minima.png" alt="">mínima</button>
-            <button class="faixa atual" data-value="16"><img src="static/notas_musicais/seminima.png" alt="">semínima</button>
-            <button class="faixa" data-value="8"><img src="static/notas_musicais/colcheia.png" alt="">colcheia</button>
-            <button class="faixa" data-value="4"><img src="static/notas_musicais/semicolcheia.png" alt="">semicolcheia</button>
+            <button class="faixa" data-value="32"><kbd class="atalho">1</kbd><img src="static/notas_musicais/minima.png" alt="">mínima</button>
+            <button class="faixa atual" data-value="16"><kbd class="atalho">2</kbd><img src="static/notas_musicais/seminima.png" alt="">semínima</button>
+            <button class="faixa" data-value="8"><kbd class="atalho">3</kbd><img src="static/notas_musicais/colcheia.png" alt="">colcheia</button>
+            <button class="faixa" data-value="4"><kbd class="atalho">4</kbd><img src="static/notas_musicais/semicolcheia.png" alt="">semicolcheia</button>
         </div>
 
         <div class="teclado">

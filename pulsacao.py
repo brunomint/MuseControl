@@ -459,6 +459,12 @@ def pagina():
     return render_template("pulso.html")
 
 
+@bp.route("/pulso/ping")
+def ping():
+    # o celular mede quanto tempo isto leva para saber a qualidade da conexão
+    return jsonify(ok=True)
+
+
 @bp.route("/pulso/status")
 def status():
     return jsonify(musescore_midi=musescore_listening())

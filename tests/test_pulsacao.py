@@ -312,3 +312,10 @@ def test_comandos_ferramentas(monkeypatch):
     assert c.post("/pulso/comando/desfazer").json["teclas"] == "ctrl+z"
     assert c.post("/pulso/comando/alt+f4").status_code == 404  # nada fora da lista
     assert enviados == [[["ctrl", "z"]]]
+
+
+def test_ping():
+    from flask import Flask
+    app = Flask(__name__, template_folder="../templates")
+    app.register_blueprint(p.bp)
+    assert app.test_client().get("/pulso/ping").json == {"ok": True}

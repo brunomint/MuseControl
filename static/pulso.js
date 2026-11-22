@@ -9,7 +9,7 @@
     const MIDI_MIN = 21, MIDI_MAX = 108;
     const TECLA_MIN_PX = 40; // largura mínima confortável de uma tecla branca
     const CURTO = { semibreve: 'semib.', minima: 'mín.', seminima: 'semín.', colcheia: 'colch.', semicolcheia: 'semic.', fusa: 'fusa', semifusa: 'semif.' };
-    const TECLA_PULSO = { 6: 32, 5: 16, 4: 8, 3: 4 };
+    const TECLA_PULSO = { 1: 32, 2: 16, 3: 8, 4: 4 }; // mesma ordem das faixas na tela
     const HEAD_MS = 120; // igual ao servidor: nota "junto com o pulso"
     const CHAVE = 'musecontrol-pulso-v3';
     const IMG = 'static/notas_musicais/';
@@ -260,6 +260,39 @@
         }).catch(() => { /* sem conexão: o aviso aparece em outro lugar */ });
     }
 
+    // ---- sinal de conexão -------------------------------------------------
+    // mede o tempo de resposta do servidor a cada 3 s (média das 3 últimas)
+    const tempos = [];
+    let ultimoPing = null;
+    function barras(ms) {
+        if (ms === null) return 0;
+        if (ms < 80) return 4;
+        if (ms < 200) return 3;
+        if (ms < 500) return 2;
+        return 1;
+    }
+    function mostraSinal() {
+        const media = tempos.length ? tempos.reduce((a, b) => a + b, 0) / tempos.length : null;
+        const b = ultimoPing === null ? 0 : barras(media);
+        const sinal = $('sinal');
+        sinal.dataset.barras = b;
+        sinal.title = b ? 'Conectado: ' + Math.round(media) + ' ms' : 'Sem conexão com o computador';
+    }
+    function ping() {
+        const ctl = new AbortController();
+        const limite = setTimeout(() => ctl.abort(), 2500);
+        const t0 = performance.now();
+        fetch('/pulso/ping', { cache: 'no-store', signal: ctl.signal })
+            .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+            .then(() => {
+                ultimoPing = performance.now() - t0;
+                tempos.push(ultimoPing);
+                if (tempos.length > 3) tempos.shift();
+            })
+            .catch(() => { ultimoPing = null; tempos.length = 0; })
+            .finally(() => { clearTimeout(limite); mostraSinal(); });
+    }
+
     let avisoTimer = null;
     function show(msg) {
         el.aviso.textContent = msg;
@@ -377,9 +410,21 @@
         if (k) k.classList.toggle('tocando', on);
     }
 
+    // letra do teclado do PC que toca esta nota (só na 1ª oitava visível)
+    function atalhoDe(m) {
+        const base = (baseOct + 1) * 12;
+        if (m < base || m > base + 11) return null;
+        const pc = m - base;
+        const letra = Object.keys(LETRA).find((l) => LETRA[l] === pc);
+        if (letra) return letra.toUpperCase();
+        const abaixo = Object.keys(LETRA).find((l) => LETRA[l] === pc - 1);
+        return abaixo ? '⇧' + abaixo.toUpperCase() : null;
+    }
+
     function montaPiano() {
         const largura = el.piano.clientWidth || 300;
-        const nBrancas = Math.max(7, Math.min(52, Math.floor(largura / TECLA_MIN_PX)));
+        const minimo = window.innerWidth >= 900 ? 50 : TECLA_MIN_PX; // tela larga: teclas mais largas
+        const nBrancas = Math.max(7, Math.min(52, Math.floor(largura / minimo)));
         const inicio = Math.max(MIDI_MIN, (baseOct + 1) * 12);
         const brancas = [];
         for (let m = inicio; brancas.length < nBrancas && m <= MIDI_MAX; m++) {
@@ -388,9 +433,12 @@
         el.piano.innerHTML = '';
         brancas.forEach((m) => {
             const b = document.createElement('button');
-            b.className = 'tecla branca' + (m % 12 === 0 ? ' do' : '');
+            b.className = 'tecla branca' + (m % 12 === 0 ? ' do' : '') + (m === 60 ? ' central' : '');
+            if (m === 60) b.title = 'Dó central';
             b.dataset.midi = m;
             b.textContent = m % 12 === 0 ? nomeMidi(m) : NOMES[m % 12];
+            const atalho = atalhoDe(m);
+            if (atalho) b.insertAdjacentHTML('afterbegin', '<kbd class="atalho">' + atalho + '</kbd>');
             el.piano.appendChild(b);
         });
         // pretas: entre a branca i e a i+1, quando existirem
@@ -402,6 +450,8 @@
             b.className = 'tecla preta';
             b.dataset.midi = preta;
             b.setAttribute('aria-label', nomeMidi(preta));
+            const atalhoP = atalhoDe(preta);
+            if (atalhoP) b.innerHTML = '<kbd class="atalho">' + atalhoP + '</kbd>';
             b.style.left = 'calc(' + ((i + 1) * passo) + '% - ' + (passo * 0.3) + '%)';
             b.style.width = (passo * 0.6) + '%';
             el.piano.appendChild(b);
@@ -435,15 +485,24 @@
     $('btnDesfazer').addEventListener('click', undo);
     $('btnLimpar').addEventListener('click', clearAll);
     el.enviar.addEventListener('click', send);
-    $('btnAjustes').addEventListener('click', () => {
-        $('ferramentas').classList.add('hidden');
-        el.ajustes.classList.toggle('hidden');
-        verificaModo();
-    });
-    $('btnFerramentas').addEventListener('click', () => {
-        el.ajustes.classList.add('hidden');
-        $('ferramentas').classList.toggle('hidden');
-    });
+    // janelas 🛠 e ⚙: abrem por cima, fecham no ✕, tocando fora ou com Esc
+    function abreJanela(id) {
+        const j = $(id);
+        const jaAberta = !j.classList.contains('hidden');
+        fechaJanelas();
+        if (jaAberta) return;
+        j.classList.remove('hidden');
+        $('fundoJanela').classList.remove('hidden');
+        if (id === 'ajustes') verificaModo();
+    }
+    function fechaJanelas() {
+        ['ajustes', 'ferramentas', 'fundoJanela'].forEach((id) => $(id).classList.add('hidden'));
+    }
+    function janelaAberta() { return !$('fundoJanela').classList.contains('hidden'); }
+    $('btnAjustes').addEventListener('click', () => abreJanela('ajustes'));
+    $('btnFerramentas').addEventListener('click', () => abreJanela('ferramentas'));
+    $('fundoJanela').addEventListener('click', fechaJanelas);
+    document.querySelectorAll('.janela .fechar').forEach((b) => b.addEventListener('click', fechaJanelas));
     document.querySelectorAll('[data-cmd]').forEach((b) => b.addEventListener('click', () => {
         fetch('/pulso/comando/' + b.dataset.cmd, { method: 'POST' })
             .then((r) => r.json()).then((d) => { if (!d.ok) show(d.erro || 'Erro'); })
@@ -461,19 +520,30 @@
             document.body.innerHTML = '<div style="margin:60px auto;text-align:center;color:#fff"><h2>MuseControl desligado.</h2><p>Pode fechar esta aba.</p></div>';
         });
     });
-    el.badge.addEventListener('click', () => { $('ferramentas').classList.add('hidden'); el.ajustes.classList.remove('hidden'); verificaModo(); });
+    el.badge.addEventListener('click', () => { if ($('ajustes').classList.contains('hidden')) abreJanela('ajustes'); });
     [el.bpb, el.delay, el.som, el.armadura].forEach((s) => s.addEventListener('change', changed));
     el.modo.addEventListener('change', () => { changed(); verificaModo(); });
 
     // ---- entradas: teclado do computador ------------------------------------
     document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && janelaAberta()) { fechaJanelas(); return; }
+        if (janelaAberta()) return; // com janela aberta o teclado não escreve notas
+        if ((ev.ctrlKey || ev.metaKey) && !ev.shiftKey && ev.key.toLowerCase() === 'z') {
+            ev.preventDefault();
+            undo(); // Ctrl+Z = desfazer o último pulso (como o Backspace)
+            return;
+        }
         if (ev.repeat || ev.ctrlKey || ev.altKey || ev.metaKey) return;
         if (ev.target.tagName === 'SELECT') return;
         const k = ev.key.toLowerCase();
         const t = stamp(ev);
         if (TECLA_PULSO[k]) { pulse(t, TECLA_PULSO[k]); setLastValue(TECLA_PULSO[k]); }
         else if (k === ' ') { ev.preventDefault(); pulse(t, lastValue); }
-        else if (k in LETRA) { if (!pressed['k' + k]) aperta(t, (baseOct + 1) * 12 + LETRA[k], 'k' + k, null); }
+        else if (k in LETRA) {
+            // Shift + letra = sustenido (Shift+C = Dó♯)
+            const midi = (baseOct + 1) * 12 + LETRA[k] + (ev.shiftKey ? 1 : 0);
+            if (!pressed['k' + k]) aperta(t, midi, 'k' + k, null);
+        }
         else if (k === 'arrowleft') { ev.preventDefault(); mudaOitava(-1); }
         else if (k === 'arrowright') { ev.preventDefault(); mudaOitava(1); }
         else if (k === 'backspace') { ev.preventDefault(); undo(); }
@@ -484,8 +554,11 @@
         if (pressed['k' + k]) solta(stamp(ev), 'k' + k);
     });
 
+    $('sinal').addEventListener('click', () => show($('sinal').title));
     load();
     montaPiano();
+    ping();
+    setInterval(ping, 3000);
     verificaModo();
     setInterval(verificaModo, 15000); // o MIDI pode ser ligado com a página aberta
     faixas.forEach((f) => f.classList.toggle('atual', Number(f.dataset.value) === lastValue));

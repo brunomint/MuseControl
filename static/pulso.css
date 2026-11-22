@@ -1,18 +1,34 @@
+/* Visual inspirado no MuseScore 4 (tema escuro): mesmas cores, fonte Fira
+   Sans, cantos pouco arredondados, sem sombras. A prévia é o "papel". */
+
+@font-face { font-family: 'Fira Sans'; font-weight: 400; src: url('fonts/FiraSans-Regular.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Fira Sans'; font-weight: 500; src: url('fonts/FiraSans-Medium.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Fira Sans'; font-weight: 600; src: url('fonts/FiraSans-SemiBold.otf') format('opentype'); font-display: swap; }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-    --roxo1: #667eea;
-    --roxo2: #764ba2;
-    --branco: rgba(255, 255, 255, 0.95);
-    --texto: #2d3748;
-    --verde: #38a169;
+    --fundo: #2d2d30;        /* barras e painéis do MuseScore */
+    --fundo-area: #27272b;   /* área em volta da partitura */
+    --painel: #363638;       /* cabeçalhos / painéis secundários */
+    --botao: #4c4c4d;        /* botões */
+    --botao-hover: #59595b;
+    --divisor: #1e1e1e;
+    --texto: #ebebeb;
+    --texto-fraco: #a8a8aa;
+    --destaque: #2093fe;     /* azul do MuseScore */
+    --destaque-fundo: #2b3744; /* aba selecionada */
+    --papel: #f9f9f9;
+    --tinta: #1a1a1a;
+    --perigo: #e55a5a;
+    --aviso: #f0b429;
 }
 
 html, body { height: 100%; }
 
 body {
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, var(--roxo1) 0%, var(--roxo2) 100%);
+    font-family: 'Fira Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--fundo-area);
     color: var(--texto);
     min-height: 100dvh;
     display: flex;
@@ -26,50 +42,111 @@ body {
 
 button {
     font: inherit;
-    border: none;
-    border-radius: 12px;
-    background: var(--branco);
+    font-weight: 500;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    background: var(--botao);
     color: var(--texto);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
     cursor: pointer;
     touch-action: manipulation;
 }
+@media (hover: hover) {
+    button:hover { background: var(--botao-hover); }
+}
+button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; }
 
 .hidden { display: none !important; }
 
-/* topo */
-.topo { display: flex; align-items: center; gap: 10px; color: #fff; }
-.status { flex: 1; text-align: center; font-size: 14px; font-weight: 600; }
-.status.gravando::before { content: '● '; color: #ff6b6b; }
-.icone { width: 40px; height: 40px; font-size: 20px; }
-.badge { flex: 0 0 auto; display: inline-flex; align-items: center; height: 32px; padding: 0 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
-.badge.modo-midi { background: #c6f6d5; color: #22543d; }
-.badge.modo-teclado { background: #fefcbf; color: #744210; }
+/* topo: como a barra de abas do MuseScore */
+.topo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -8px -8px 0;
+    padding: 6px 8px;
+    background: var(--fundo);
+    border-bottom: 1px solid var(--divisor);
+}
+.status { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: var(--texto); }
+.status.gravando::before { content: '● '; color: var(--perigo); }
+.icone { width: 38px; height: 38px; font-size: 18px; background: transparent; }
+@media (hover: hover) { .icone:hover { background: var(--botao); } }
 
+/* sinal de conexão: barras acesas = resposta rápida do servidor */
+.sinal { flex: 0 0 auto; position: relative; width: 34px; height: 30px; display: inline-flex; align-items: center; justify-content: center; background: transparent; }
+.sinal rect { fill: #5a5a5c; }
+.sinal[data-barras="1"] rect:nth-child(-n+1),
+.sinal[data-barras="2"] rect:nth-child(-n+2),
+.sinal[data-barras="3"] rect:nth-child(-n+3),
+.sinal[data-barras="4"] rect:nth-child(-n+4) { fill: var(--texto); }
+.sinal[data-barras="1"] rect:nth-child(1) { fill: var(--aviso); }
+.sinal .sem { display: none; position: absolute; right: 1px; bottom: 0; font-size: 12px; font-weight: 600; color: var(--perigo); }
+.sinal[data-barras="0"] .sem { display: block; }
+
+.badge { flex: 0 0 auto; display: inline-flex; align-items: center; height: 28px; padding: 0 10px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.badge.modo-midi { background: var(--destaque-fundo); color: #7cbcff; border-color: #2f5a85; }
+.badge.modo-teclado { background: #3d3524; color: var(--aviso); border-color: #6b5626; }
+
+/* janelas 🛠 e ⚙: como os diálogos do MuseScore, por cima da tela */
 .ajustes {
-    background: var(--branco);
-    border-radius: 14px;
+    background: var(--fundo);
+    border: 1px solid var(--divisor);
+    border-radius: 4px;
     padding: 12px;
     display: grid;
-    gap: 8px;
+    gap: 10px;
     font-size: 14px;
 }
 .ajustes label { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.ajustes select { font: inherit; padding: 4px; border-radius: 8px; }
-.dica { font-size: 12px; color: #4a5568; }
+.ajustes select {
+    font: inherit;
+    padding: 5px 8px;
+    border-radius: 3px;
+    border: 1px solid #5a5a5c;
+    background: var(--botao);
+    color: var(--texto);
+}
+.dica { font-size: 12px; color: var(--texto-fraco); line-height: 1.45; }
+.dica b { color: var(--texto); font-weight: 600; }
 
-/* gaveta de ferramentas do MuseScore */
-.ferramentas .titulo { font-weight: 700; font-size: 13px; color: #4a5568; }
+.fundo-janela { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 20; }
+.janela {
+    position: fixed;
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(560px, calc(100vw - 16px));
+    max-height: calc(100dvh - 68px);
+    overflow-y: auto;
+    z-index: 21;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    padding: 0 14px 14px;
+}
+.janela .cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 -14px;
+    padding: 8px 10px 8px 14px;
+    background: var(--painel);
+    border-bottom: 1px solid var(--divisor);
+    font-weight: 600;
+    font-size: 14px;
+}
+.janela .fechar { width: 30px; height: 30px; font-size: 14px; background: transparent; }
+
+/* ferramentas do MuseScore */
 .ferramentas .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .ferramentas .setas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.ferramentas button { height: 44px; font-size: 13px; font-weight: 600; background: #edf2f7; }
-.ferramentas .setas button { font-size: 18px; }
-.ferramentas .desligar { background: #fed7d7; color: #9b2c2c; }
+.ferramentas button { height: 40px; font-size: 13px; }
+.ferramentas .setas button { font-size: 16px; }
+.ferramentas .desligar { background: #4a2a2a; color: #ff9b9b; border-color: #6b3434; }
 
-/* prévia da partitura */
+/* prévia: o "papel" da partitura */
 .previa {
-    background: var(--branco);
-    border-radius: 14px;
+    background: var(--papel);
+    color: var(--tinta);
+    border-radius: 2px;
     min-height: 74px;
     padding: 8px;
     display: flex;
@@ -77,194 +154,241 @@ button {
     gap: 4px;
     overflow-x: auto;
     white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
-.vazio { color: #718096; font-size: 13px; align-self: center; white-space: normal; }
+.vazio { color: #777; font-size: 13px; align-self: center; white-space: normal; }
 .fig {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
     min-width: 34px;
     padding: 2px 3px;
-    border-radius: 8px;
+    border-radius: 2px;
 }
 .fig .img { display: flex; align-items: flex-end; height: 36px; }
 .fig img { height: 34px; width: auto; }
 .fig img.ponto { height: 12px; margin-left: 1px; }
-.fig .nome { font-size: 11px; font-weight: 600; }
-.fig.resto .nome { color: #718096; }
-.fig.novo { background: #e6fffa; }
-.liga { font-size: 18px; color: #4a5568; align-self: center; margin: 0 -2px; }
-.quialtera {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: stretch;
-}
+.fig .nome { font-size: 11px; font-weight: 500; }
+.fig.resto .nome { color: #777; }
+.fig.novo { background: #dbeeff; box-shadow: inset 0 -2px 0 var(--destaque); } /* como a seleção azul */
+.liga { font-size: 18px; color: #555; align-self: center; margin: 0 -2px; }
+.quialtera { display: inline-flex; flex-direction: column; align-items: stretch; }
 .quialtera .num {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     text-align: center;
-    border: 1.5px solid #4a5568;
+    border: 1.5px solid #555;
     border-bottom: none;
-    border-radius: 4px 4px 0 0;
+    border-radius: 2px 2px 0 0;
     margin: 0 6px 1px;
     line-height: 12px;
 }
 .quialtera .grupo { display: flex; gap: 2px; }
-.fig .voz2 { font-size: 10px; color: #805ad5; font-weight: 700; }
-.barra { width: 2px; align-self: stretch; background: #2d3748; margin: 0 4px; }
+.fig .voz2 { font-size: 10px; color: #1b7a3c; font-weight: 600; } /* voz 2 = verde no MuseScore */
+.barra { width: 2px; align-self: stretch; background: var(--tinta); margin: 0 4px; }
 .previa > * { flex-shrink: 0; }
 
 /* área de tocar */
-.palco {
-    flex: 1;
-    display: flex;
-    gap: 8px;
-    min-height: 260px;
-}
+.palco { flex: 1; display: flex; gap: 8px; min-height: 260px; }
 
-/* PULSO: um botão só, dividido em faixas. A última faixa usada fica um
-   pouco maior; a ordem nunca muda e o tamanho só muda ao trocar de valor. */
+/* PULSO: um botão só, dividido em faixas, como a barra de durações do
+   MuseScore. A faixa usada por último fica maior e "selecionada" (azul). */
 .pulso {
     flex: 0 0 38%;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    border-radius: 20px;
+    gap: 1px;
+    border-radius: 4px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.35);
-    padding: 3px;
+    background: var(--divisor);
+    border: 1px solid var(--divisor);
 }
 .faixa {
     flex: 1 1 0;
-    border-radius: 6px;
-    background: linear-gradient(160deg, #fff, #edf2f7);
+    border-radius: 0;
+    border: none;
+    background: var(--fundo);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     font-size: 14px;
-    font-weight: 700;
-    color: var(--roxo2);
+    font-weight: 500;
+    color: var(--texto);
     touch-action: none;
     transition: flex-grow 0.25s ease, background 0.05s;
-    box-shadow: none;
 }
-.faixa:first-child { border-radius: 17px 17px 6px 6px; }
-.faixa:last-child { border-radius: 6px 6px 17px 17px; }
-.faixa img { height: 26px; width: auto; }
-.faixa.atual { flex-grow: 1.45; background: linear-gradient(160deg, #ebf4ff, #e9d8fd); font-size: 16px; }
+.faixa img { height: 26px; width: auto; filter: invert(0.92); } /* figuras claras no fundo escuro */
+.faixa.atual { flex-grow: 1.45; background: var(--destaque-fundo); box-shadow: inset 0 -3px 0 var(--destaque); font-size: 16px; }
 .faixa.atual img { height: 32px; }
-.faixa.batida { background: linear-gradient(160deg, #c3dafe, #d6bcfa); }
+.faixa.batida { background: var(--destaque); color: #fff; }
+.faixa.batida img { filter: invert(1); }
 
 .teclado { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .regiao { display: flex; align-items: center; gap: 6px; }
-.seta { width: 52px; height: 40px; font-size: 18px; }
-.faixa-visivel { flex: 1; text-align: center; color: #fff; font-weight: 700; font-size: 15px; }
+.seta { width: 48px; height: 36px; font-size: 16px; }
+.faixa-visivel { flex: 1; text-align: center; color: var(--texto); font-weight: 500; font-size: 14px; }
 
-/* teclado de piano: teclas brancas lado a lado, pretas por cima */
+/* piano: como o teclado do Piano Keyboard do MuseScore */
 .piano {
     flex: 1;
     position: relative;
     display: flex;
     min-height: 150px;
-    border-radius: 12px;
+    border-radius: 3px;
     overflow: hidden;
-    background: #1a202c;
-    padding: 3px;
-    gap: 2px;
+    background: var(--divisor);
+    padding: 2px;
+    gap: 1px;
 }
-.tecla {
-    touch-action: none;
-    box-shadow: none;
-    padding: 0;
-}
+.tecla { touch-action: none; padding: 0; border: none; }
 .tecla.branca {
     flex: 1 1 0;
-    background: linear-gradient(180deg, #fff 80%, #edf2f7);
-    border-radius: 0 0 8px 8px;
+    background: #f4f4f4;
+    border-radius: 0 0 3px 3px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 6px;
     font-size: 11px;
-    font-weight: 700;
-    color: #718096;
+    font-weight: 500;
+    color: #6b6b6b;
 }
-.tecla.branca.do { color: var(--roxo2); font-size: 12px; }
+@media (hover: hover) { .tecla.branca:hover { background: #fff; } }
+.tecla.branca.do { color: var(--tinta); font-weight: 600; font-size: 12px; }
+/* Dó central (Dó4): ponto azul em destaque */
+.tecla.branca.central { flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; color: var(--destaque); font-weight: 600; }
+.tecla.branca.central::before { content: ''; width: 18px; height: 18px; border-radius: 50%; background: var(--destaque); box-shadow: 0 0 0 4px rgba(32, 147, 254, 0.25); }
 .tecla.preta {
     position: absolute;
-    top: 3px;
+    top: 2px;
     height: 58%;
-    background: linear-gradient(180deg, #2d3748, #111);
-    border-radius: 0 0 6px 6px;
+    background: #1c1c1c;
+    border: 1px solid #000;
+    border-radius: 0 0 2px 2px;
     z-index: 2;
 }
-.tecla.branca.tocando { background: linear-gradient(180deg, #c3dafe, #a3bffa); color: var(--texto); }
-.tecla.preta.tocando { background: linear-gradient(180deg, #667eea, #553c9a); }
+@media (hover: hover) { .tecla.preta:hover { background: #333; } }
+.tecla.branca.tocando { background: #9ccfff; color: var(--tinta); }
+.tecla.preta.tocando { background: var(--destaque); }
 
 /* correção de oitava (só depois de enviar no modo teclado) */
 .corrigir {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #fefcbf;
-    color: #744210;
-    border-radius: 12px;
+    background: #3d3524;
+    border: 1px solid #6b5626;
+    color: var(--aviso);
+    border-radius: 3px;
     padding: 6px 8px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
 }
 .corrigir span { flex: 1; }
-.corrigir button { height: 38px; padding: 0 10px; font-size: 13px; font-weight: 700; }
+.corrigir button { height: 34px; padding: 0 10px; font-size: 13px; }
 
 /* ações */
 .acoes { display: grid; grid-template-columns: 1.3fr 1fr 1.3fr; gap: 6px; }
-.acoes button { height: 46px; font-size: 13px; font-weight: 600; }
-.acoes .enviar { background: var(--verde); color: #fff; }
+.acoes button { height: 44px; font-size: 13px; }
+.acoes .enviar { background: var(--destaque); color: #fff; font-weight: 600; } /* botão principal do MuseScore */
+@media (hover: hover) { .acoes .enviar:hover { background: #3aa1ff; } }
 .acoes button:disabled { opacity: 0.5; }
 
-.teclas { color: #fff; font-size: 12px; }
+.teclas { color: var(--texto-fraco); font-size: 12px; }
 .teclas summary { cursor: pointer; }
-.teclas code { display: block; margin-top: 4px; word-break: break-word; white-space: normal; }
+.teclas code { display: block; margin-top: 4px; word-break: break-word; white-space: normal; color: var(--texto); }
 
 .aviso {
     position: fixed;
     left: 50%;
-    top: 64px;
+    top: 56px;
     transform: translateX(-50%);
-    background: #2d3748;
-    color: #fff;
+    background: var(--painel);
+    border: 1px solid var(--divisor);
+    color: var(--texto);
     padding: 10px 16px;
-    border-radius: 12px;
+    border-radius: 3px;
     font-size: 14px;
     max-width: 90vw;
     text-align: center;
-    z-index: 10;
+    z-index: 30;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* celular deitado: mais espaço para as mãos */
 @media (orientation: landscape) and (max-height: 500px) {
     body { gap: 6px; padding: 6px; }
+    .topo { margin: -6px -6px 0; padding: 4px 6px; }
     .previa { min-height: 62px; }
     .palco { min-height: 0; }
     .acoes button { height: 38px; }
-    .seta { height: 34px; }
+    .seta { height: 32px; }
     .piano { min-height: 0; }
     .faixa img { height: 20px; }
     .faixa.atual img { height: 24px; }
 }
 
-/* celular em pé: PULSO em cima (faixas lado a lado) e piano embaixo,
-   os dois com a largura toda */
+/* celular em pé: piano em cima e PULSO embaixo, os dois com a largura toda */
 @media (orientation: portrait) and (max-width: 700px) {
     .palco { flex-direction: column; }
     .pulso { flex: 0 0 40%; flex-direction: row; order: 2; }
     .teclado { order: 1; }
     .faixa { flex-direction: column; gap: 4px; font-size: 12px; }
     .faixa.atual { font-size: 13px; }
-    .faixa:first-child { border-radius: 17px 6px 6px 17px; }
-    .faixa:last-child { border-radius: 6px 17px 17px 6px; }
     .faixa img { height: 28px; }
     .faixa.atual img { height: 34px; }
     .piano { min-height: 0; }
+}
+
+/* atalhos do teclado do PC: só aparecem em tela larga */
+.atalho { display: none; }
+
+/* tela larga (PC, iPad deitado): conteúdo centralizado, piano em cima com
+   altura fixa e PULSO numa faixa horizontal embaixo */
+@media (min-width: 900px) and (min-height: 600px) {
+    body { padding: 0 20px 20px; gap: 16px; font-size: 16px; }
+    .topo { margin: 0 -20px; padding: 8px 20px; }
+    .topo, .previa, .palco, .acoes, .teclas, .corrigir { width: 100%; max-width: 1400px; align-self: center; }
+    .topo { max-width: none; width: auto; align-self: stretch; }
+    .palco { flex: 0 0 auto; flex-direction: column; gap: 16px; }
+    .teclado { order: 1; flex: 0 0 auto; }
+    .piano { flex: 0 0 auto; height: clamp(220px, 34vh, 340px); min-height: 0; }
+    .tecla.branca { font-size: 13px; padding-bottom: 10px; }
+    .tecla.branca.do { font-size: 15px; }
+    .pulso { order: 2; flex: 0 0 clamp(100px, 14vh, 150px); flex-direction: row; }
+    .faixa { flex-direction: row; font-size: 18px; gap: 12px; }
+    .faixa.atual { font-size: 20px; }
+    .faixa img { height: 38px; }
+    .faixa.atual img { height: 46px; }
+    .acoes { max-width: 760px; }
+    .acoes button { height: 52px; font-size: 16px; }
+    .status { font-size: 15px; }
+    .icone { width: 44px; height: 44px; font-size: 22px; }
+    .badge { height: 34px; font-size: 13px; }
+    .sinal { width: 40px; height: 34px; }
+    .seta { width: 60px; height: 44px; font-size: 20px; }
+    .faixa-visivel { font-size: 17px; }
+    .previa { min-height: 88px; }
+    .fig .img { height: 46px; }
+    .fig img { height: 44px; }
+    .fig .nome { font-size: 13px; }
+    .teclas { font-size: 14px; }
+    .atalho {
+        display: inline-block;
+        font: 600 12px/1 'Fira Sans', ui-monospace, monospace;
+        padding: 3px 6px;
+        border-radius: 3px;
+        border: 1px solid #c8c8c8;
+        border-bottom-width: 2px;
+        background: #fff;
+        color: #555;
+    }
+    .faixa { position: relative; }
+    .faixa .atalho { position: absolute; top: 8px; left: 10px; background: var(--botao); color: var(--texto); border-color: #66666a; }
+    .tecla { position: relative; }
+    .tecla .atalho { position: absolute; left: 50%; transform: translateX(-50%); }
+    .tecla.branca .atalho { bottom: 36px; }
+    .tecla.branca.central .atalho { bottom: 58px; }
+    .tecla.preta .atalho { bottom: 8px; background: #333; color: #ddd; border-color: #555; font-size: 10px; padding: 2px 4px; }
 }

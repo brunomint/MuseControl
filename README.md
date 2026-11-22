@@ -103,10 +103,10 @@ Nada vai para o MuseScore enquanto você escreve. Confira a prévia e toque em
 ligadura, `0` para pausa, `Ctrl+3`… para quiálteras). Antes, deixe o MuseScore
 em foco, no modo de inserção (N) e com o cursor no começo do compasso.
 
-No computador: 6/5/4/3 = pulso de mínima/semínima/colcheia/semicolcheia,
+No computador: 1/2/3/4 = pulso de mínima/semínima/colcheia/semicolcheia,
 Espaço = repete o último, C D E F G A B = teclas brancas da 1ª oitava visível
-(segure para prolongar), ← → = muda a oitava,
-Backspace = desfazer, Enter = enviar.
+(segure para prolongar), Shift + letra = sustenido, ← → = muda a oitava,
+Backspace ou Ctrl+Z = desfazer, Enter = enviar.
 
 Testes: `pytest tests`
 
