@@ -81,7 +81,7 @@ parar e pensar — só a ordem dos toques importa.
   (aparece na prévia; o envio de duas vozes ainda não existe).
 
 As notas são tocadas num **teclado de piano** na tela, com altura exata
-(◀ ▶ mudam a oitava; o celular deitado mostra ~1,5 oitava, o iPad mais).
+(◀ ▶ mudam a oitava, ‹ › andam uma tecla; o celular deitado mostra ~1,5 oitava, o iPad mais).
 
 **Envio das notas (automático):**
 - **MIDI** (oitava sempre exata): no MuseScore, Editar → Preferências → Áudio e
@@ -94,6 +94,17 @@ As notas são tocadas num **teclado de piano** na tela, com altura exata
 Duração, ligadura, pausa e quiálteras sempre vão por teclas (o MuseScore
 precisa estar em foco na hora de enviar).
 
+**Variáveis** (a ideia das variáveis do LilyPond): escreva um trecho, toque em
+**＋ Guardar** e dê um nome (ex.: "baixo Dó"). O nome vira um botão acima do
+piano; tocar nele insere o trecho de novo, quantas vezes quiser. "Desfazer pulso"
+logo depois tira a variável inserida inteira. **Segurar** o nome (ou clicar com
+o botão direito) abre as opções: **transpor** (semitom ou oitava) e **repetir**
+(até 16×). O botão ⋯ lista as variáveis para inserir com opções, **editar**
+(o trecho volta para a área de escrita; ao salvar ou cancelar, volta o que você
+estava escrevendo), duplicar, renomear e apagar. As
+variáveis ficam salvas no computador (`dados/variaveis.json`), valendo para
+todos os aparelhos.
+
 Exemplos: colcheia + 2 semicolcheias = ♪+Dó, ♪+Ré, Mi ·
 colcheia pontuada + semicolcheia = ♪+Dó (segura), ♬, solta, ♬+Ré ·
 tercina = ♩+Dó, Ré, Mi.
@@ -105,7 +116,7 @@ em foco, no modo de inserção (N) e com o cursor no começo do compasso.
 
 No computador: 1/2/3/4 = pulso de mínima/semínima/colcheia/semicolcheia,
 Espaço = repete o último, C D E F G A B = teclas brancas da 1ª oitava visível
-(segure para prolongar), Shift + letra = sustenido, ← → = muda a oitava,
+(segure para prolongar), Shift + letra = sustenido, ← → = muda a oitava, Shift + ← → = anda uma tecla,
 Backspace ou Ctrl+Z = desfazer, Enter = enviar.
 
 Testes: `pytest tests`
@@ -124,10 +135,14 @@ Design responsivo otimizado para smartphones com controles touch-friendly.
 MuseControl/
 ├── main.py                 # Sobe o servidor, QR code, desligar
 ├── pulsacao.py             # Modo Pulsação: regras do ritmo e envio ao MuseScore
+├── variaveis.py            # Variáveis: trechos guardados com nome
+├── dados/                  # Variáveis salvas (criada sozinha, fora do Git)
 ├── requirements.txt        # Dependências Python
 ├── tests/                  # Testes (pytest)
 ├── static/
 │   ├── pulso.js / pulso.css  # Tela do celular (pulso, piano, prévia)
+│   ├── variaveis.js        # Botões e janelas das variáveis
+│   ├── fonts/              # Fira Sans (a fonte do MuseScore)
 │   ├── notas_musicais/     # Ícones das figuras
 │   └── qrcode.png          # QR Code gerado automaticamente
 └── templates/

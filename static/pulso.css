@@ -69,6 +69,19 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 }
 .status { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: var(--texto); }
 .status.gravando::before { content: '● '; color: var(--perigo); }
+/* mensagem temporária no lugar do status (máx. 2 linhas) */
+.status.com-aviso {
+    color: #9fd0ff;
+    background: var(--destaque-fundo);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 .icone { width: 38px; height: 38px; font-size: 18px; background: transparent; }
 @media (hover: hover) { .icone:hover { background: var(--botao); } }
 
@@ -188,6 +201,68 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .barra { width: 2px; align-self: stretch; background: var(--tinta); margin: 0 4px; }
 .previa > * { flex-shrink: 0; }
 
+/* variáveis: chips com os trechos guardados */
+.variaveis { display: flex; align-items: center; gap: 6px; min-height: 36px; }
+.var-guardar { flex: 0 0 auto; height: 34px; padding: 0 12px; font-size: 13px; background: var(--destaque-fundo); color: #7cbcff; border-color: #2f5a85; }
+.var-gerenciar { flex: 0 0 auto; width: 38px; height: 34px; font-size: 18px; line-height: 1; }
+.chips { flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
+.chips > * { flex-shrink: 0; }
+.chips-vazio { color: var(--texto-fraco); font-size: 13px; align-self: center; padding: 0 4px; }
+.chip { height: 34px; padding: 0 12px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+.chip small { color: var(--texto-fraco); font-size: 11px; }
+.chip.inserido { background: var(--destaque); color: #fff; }
+.chip.inserido small { color: #dceeff; }
+
+/* janelas das variáveis */
+.ajustes input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    padding: 7px 9px;
+    border-radius: 3px;
+    border: 1px solid #5a5a5c;
+    background: var(--fundo-area);
+    color: var(--texto);
+}
+.ajustes input[type="text"]:focus { outline: none; border-color: var(--destaque); }
+.botoes-janela { display: flex; justify-content: flex-end; gap: 8px; }
+.botoes-janela button { height: 36px; padding: 0 16px; }
+button.principal { background: var(--destaque); color: #fff; }
+.dica.erro { color: #ff8f8f; }
+.lista-var { display: grid; gap: 6px; }
+.lista-var .linha { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--painel); border-radius: 3px; }
+.lista-var .linha .nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-var .linha small { color: var(--texto-fraco); }
+.lista-var .linha button { height: 32px; padding: 0 10px; font-size: 13px; }
+.lista-var .linha .apagar { color: #ff9b9b; }
+.lista-var .linha .apagar.confirmar { background: #6b3434; color: #fff; }
+
+/* inserir com opções (transpor / repetir) */
+.opcao { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.opcao .rotulo { font-weight: 500; }
+.passos { display: flex; align-items: center; gap: 4px; }
+.passos button { min-width: 42px; height: 36px; padding: 0 8px; }
+.passos .valor { min-width: 52px; text-align: center; font-weight: 600; font-size: 16px; }
+.lista-var .linha { flex-wrap: wrap; }
+.lista-var .linha .nome { flex: 1 1 100%; }
+.lista-var .linha .acoes-var { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* faixa "Editando variável" */
+.editando {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--destaque-fundo);
+    border: 1px solid #2f5a85;
+    color: #cfe6ff;
+    border-radius: 3px;
+    padding: 6px 8px;
+    font-size: 13px;
+}
+.editando span { flex: 1; }
+.editando b { color: #fff; }
+.editando button { height: 34px; padding: 0 12px; font-size: 13px; }
+
 /* área de tocar */
 .palco { flex: 1; display: flex; gap: 8px; min-height: 260px; }
 
@@ -228,6 +303,7 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .regiao { display: flex; align-items: center; gap: 6px; }
 .seta { width: 48px; height: 36px; font-size: 16px; }
 .faixa-visivel { flex: 1; text-align: center; color: var(--texto); font-weight: 500; font-size: 14px; }
+.seta.nota-passo { width: 40px; font-size: 22px; line-height: 1; background: var(--painel); }
 
 /* piano: como o teclado do Piano Keyboard do MuseScore */
 .piano {
@@ -299,23 +375,6 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 .teclas summary { cursor: pointer; }
 .teclas code { display: block; margin-top: 4px; word-break: break-word; white-space: normal; color: var(--texto); }
 
-.aviso {
-    position: fixed;
-    left: 50%;
-    top: 56px;
-    transform: translateX(-50%);
-    background: var(--painel);
-    border: 1px solid var(--divisor);
-    color: var(--texto);
-    padding: 10px 16px;
-    border-radius: 3px;
-    font-size: 14px;
-    max-width: 90vw;
-    text-align: center;
-    z-index: 30;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-}
-
 /* celular deitado: mais espaço para as mãos */
 @media (orientation: landscape) and (max-height: 500px) {
     body { gap: 6px; padding: 6px; }
@@ -349,7 +408,9 @@ button:focus-visible { outline: 2px solid var(--destaque); outline-offset: 1px; 
 @media (min-width: 900px) and (min-height: 600px) {
     body { padding: 0 20px 20px; gap: 16px; font-size: 16px; }
     .topo { margin: 0 -20px; padding: 8px 20px; }
-    .topo, .previa, .palco, .acoes, .teclas, .corrigir { width: 100%; max-width: 1400px; align-self: center; }
+    .topo, .previa, .variaveis, .palco, .acoes, .teclas, .corrigir, .editando { width: 100%; max-width: 1400px; align-self: center; }
+    .chip, .var-guardar { height: 40px; font-size: 15px; }
+    .var-gerenciar { height: 40px; width: 44px; }
     .topo { max-width: none; width: auto; align-self: stretch; }
     .palco { flex: 0 0 auto; flex-direction: column; gap: 16px; }
     .teclado { order: 1; flex: 0 0 auto; }

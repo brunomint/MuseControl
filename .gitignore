@@ -56,3 +56,6 @@ static/qrcode.png
 # Arquivos de sistema
 *.desktop
 *.sh
+
+# Dados do usuário (variáveis guardadas)
+dados/

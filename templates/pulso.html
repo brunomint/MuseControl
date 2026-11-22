@@ -44,6 +44,50 @@
         <button id="btnDesligar" class="desligar">⏻ Desligar o MuseControl</button>
     </div>
 
+    <div id="janelaGuardar" class="ajustes janela hidden" role="dialog" aria-label="Guardar variável">
+        <div class="cabecalho"><span>＋ Guardar como variável</span><button class="fechar" aria-label="Fechar">✕</button></div>
+        <p class="dica">Guarda tudo o que está escrito agora (<b id="guardarPulsos">0 pulsos</b>) com um nome. Depois é só tocar no nome para inserir o trecho de novo.</p>
+        <label>Nome <input id="nomeVar" type="text" maxlength="40" placeholder="ex.: baixo Dó" autocomplete="off"></label>
+        <p id="guardarErro" class="dica erro hidden"></p>
+        <div class="botoes-janela">
+            <button id="cancelarGuardar">Cancelar</button>
+            <button id="confirmarGuardar" class="principal">Guardar</button>
+        </div>
+    </div>
+
+    <div id="janelaInserir" class="ajustes janela hidden" role="dialog" aria-label="Inserir variável com opções">
+        <div class="cabecalho"><span id="inserirTitulo">Inserir</span><button class="fechar" aria-label="Fechar">✕</button></div>
+        <div class="opcao">
+            <span class="rotulo">Transpor</span>
+            <div class="passos">
+                <button data-transp="-12" title="Uma oitava abaixo">−8ª</button>
+                <button data-transp="-1" title="Um semitom abaixo">−</button>
+                <span id="transpValor" class="valor">0</span>
+                <button data-transp="1" title="Um semitom acima">+</button>
+                <button data-transp="12" title="Uma oitava acima">+8ª</button>
+            </div>
+        </div>
+        <p id="transpInfo" class="dica"></p>
+        <div class="opcao">
+            <span class="rotulo">Repetir</span>
+            <div class="passos">
+                <button data-vezes="-1">−</button>
+                <span id="vezesValor" class="valor">1×</span>
+                <button data-vezes="1">+</button>
+            </div>
+        </div>
+        <p id="inserirResumo" class="dica"></p>
+        <div class="botoes-janela">
+            <button id="cancelarInserir">Cancelar</button>
+            <button id="confirmarInserir" class="principal">Inserir</button>
+        </div>
+    </div>
+
+    <div id="janelaVariaveis" class="ajustes janela hidden" role="dialog" aria-label="Variáveis">
+        <div class="cabecalho"><span>Variáveis</span><button class="fechar" aria-label="Fechar">✕</button></div>
+        <div id="listaVar" class="lista-var"></div>
+    </div>
+
     <div id="ajustes" class="ajustes janela hidden" role="dialog" aria-label="Ajustes">
         <div class="cabecalho"><span>⚙ Ajustes</span><button class="fechar" aria-label="Fechar">✕</button></div>
         <label>Compasso
@@ -95,12 +139,19 @@
         </label>
         <p class="dica"><b>Como escrever:</b> toque a faixa do PULSO junto com a 1ª nota. Notas sozinhas depois dividem o pulso (2 = metades, 3 = tercina, 4 = quartos…). PULSO com a nota segurada prolonga; PULSO sem nota segurada = pausa.</p>
         <p class="dica">No MuseScore: janela em foco, modo de inserção (N), cursor no início do compasso. Em Preferências → Áudio e MIDI, a Entrada MIDI precisa ser "Midi Through" (as alturas vão por MIDI).</p>
-        <p class="dica"><b>Teclado do computador:</b> 1 / 2 / 3 / 4 = pulso de mínima / semínima / colcheia / semicolcheia · Espaço = repete o último pulso · C D E F G A B = notas da 1ª oitava visível (segure para prolongar) · Shift + letra = sustenido · ← → = muda a oitava · Backspace ou Ctrl+Z = desfazer pulso · Enter = enviar · Esc = fecha esta janela</p>
+        <p class="dica"><b>Teclado do computador:</b> 1 / 2 / 3 / 4 = pulso de mínima / semínima / colcheia / semicolcheia · Espaço = repete o último pulso · C D E F G A B = notas da 1ª oitava visível (segure para prolongar) · Shift + letra = sustenido · ← → = muda a oitava · Shift + ← → = anda uma tecla · Backspace ou Ctrl+Z = desfazer pulso · Enter = enviar · Esc = fecha esta janela</p>
     </div>
 
     <section id="previa" class="previa" aria-live="polite">
         <span class="vazio">A partitura aparece aqui conforme você escreve.</span>
     </section>
+
+    <!-- variáveis: trechos guardados com nome (ideia do LilyPond) -->
+    <div class="variaveis" aria-label="Variáveis">
+        <button id="btnGuardarVar" class="var-guardar" title="Guardar o que está escrito como variável">＋ Guardar</button>
+        <div id="chipsVar" class="chips"><span class="chips-vazio">Nenhuma variável ainda</span></div>
+        <button id="btnGerenciarVar" class="var-gerenciar" aria-label="Gerenciar variáveis" title="Renomear ou apagar">⋯</button>
+    </div>
 
     <main class="palco">
         <div id="pulso" class="pulso" role="group" aria-label="Pulso">
@@ -112,13 +163,21 @@
 
         <div class="teclado">
             <div class="regiao">
-                <button id="oitavaMenos" class="seta" aria-label="Oitava abaixo">◀</button>
+                <button id="oitavaMenos" class="seta" aria-label="Oitava abaixo" title="Uma oitava abaixo">◀</button>
+                <button id="notaMenos" class="seta nota-passo" aria-label="Uma tecla abaixo" title="Uma tecla abaixo">‹</button>
                 <span id="faixaVisivel" class="faixa-visivel">Dó4 – Si4</span>
-                <button id="oitavaMais" class="seta" aria-label="Oitava acima">▶</button>
+                <button id="notaMais" class="seta nota-passo" aria-label="Uma tecla acima" title="Uma tecla acima">›</button>
+                <button id="oitavaMais" class="seta" aria-label="Oitava acima" title="Uma oitava acima">▶</button>
             </div>
             <div id="piano" class="piano"></div>
         </div>
     </main>
+
+    <div id="editandoVar" class="editando hidden">
+        <span>Editando <b id="editandoNome"></b>: escreva, desfaça e mude à vontade.</span>
+        <button id="cancelarEdicao">Cancelar</button>
+        <button id="salvarEdicao" class="principal">Salvar</button>
+    </div>
 
     <div id="corrigir" class="corrigir hidden">
         <span>A oitava do trecho saiu errada?</span>
@@ -137,8 +196,8 @@
         <code id="teclas"></code>
     </details>
 
-    <div id="aviso" class="aviso hidden"></div>
 
     <script src="{{ url_for('static', filename='pulso.js') }}"></script>
+    <script src="{{ url_for('static', filename='variaveis.js') }}"></script>
 </body>
 </html>

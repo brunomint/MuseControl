@@ -17,7 +17,7 @@
     const $ = (id) => document.getElementById(id);
     const el = {
         status: $('status'), previa: $('previa'), bpb: $('bpb'), delay: $('delay'),
-        teclas: $('teclas'), totalTeclas: $('totalTeclas'), aviso: $('aviso'),
+        teclas: $('teclas'), totalTeclas: $('totalTeclas'),
         ajustes: $('ajustes'), enviar: $('btnEnviar'), som: $('som'),
         piano: $('piano'), faixaVisivel: $('faixaVisivel'),
         modo: $('modo'), armadura: $('armadura'), badge: $('modoBadge'), modoInfo: $('modoInfo'),
@@ -29,7 +29,7 @@
     let nextId = 1;
     let lastValue = 16;   // faixa usada por último (fica maior)
     let sent = false;
-    let baseOct = 4;      // oitava da primeira tecla visível (Dó4 = Dó central)
+    let inicio = 60;      // primeira tecla (branca) visível do piano; 60 = Dó central
     const pressed = {};   // ponteiro/tecla -> {id, btn}
 
     function load() {
@@ -45,7 +45,8 @@
                 if (s.som) el.som.value = s.som;
                 if (s.modo) el.modo.value = s.modo;
                 if (s.armadura !== undefined) el.armadura.value = s.armadura;
-                if (s.baseOct) baseOct = s.baseOct;
+                if (s.inicio && BRANCAS.includes(s.inicio % 12)) inicio = s.inicio;
+                else if (s.baseOct) inicio = (s.baseOct + 1) * 12; // versão antiga guardava a oitava
             }
         } catch (e) { /* sem armazenamento: começa vazio */ }
         // tempos antigos são de outra sessão da página: recomeça a contagem depois deles
@@ -59,7 +60,7 @@
         try {
             localStorage.setItem(CHAVE, JSON.stringify({
                 events, nextId, lastValue, sent, bpb: el.bpb.value, delay: el.delay.value,
-                som: el.som.value, baseOct, modo: el.modo.value, armadura: el.armadura.value,
+                som: el.som.value, inicio, modo: el.modo.value, armadura: el.armadura.value,
             }));
         } catch (e) { /* ignora */ }
     }
@@ -117,6 +118,13 @@
         let idx = -1;
         events.forEach((e, i) => { if (e.type === 'pulse') idx = i; });
         if (idx < 0) { clearAll(); return; }
+        const grupo = events[idx].g;
+        if (grupo) { // o último pulso veio de uma variável inserida: tira ela inteira
+            events = events.filter((e) => e.g !== grupo);
+            sent = false;
+            changed();
+            return;
+        }
         const corte = events[idx].t - HEAD_MS;
         const fora = new Set(events.filter((e) => e.type === 'down' && e.t >= corte).map((e) => e.id));
         events = events.filter((e, i) => i !== idx &&
@@ -138,10 +146,11 @@
     function changed() {
         save();
         const n = pulseCount();
-        el.status.textContent = sent ? 'Enviado. O próximo toque começa outro trecho'
+        statusBase = sent ? 'Enviado. O próximo toque começa outro trecho'
             : n ? n + ' pulso(s)'
             : events.length ? 'Toque a faixa do PULSO junto com a nota'
             : 'Toque uma faixa do PULSO junto com a 1ª nota';
+        mostraStatus();
         analyze();
     }
 
@@ -293,12 +302,21 @@
             .finally(() => { clearTimeout(limite); mostraSinal(); });
     }
 
+    // mensagens aparecem no topo, no lugar do status, por 3,5 s: assim não
+    // cobrem as notas nem o teclado
+    let statusBase = '';
+    let aviso = null;
     let avisoTimer = null;
+    function mostraStatus() {
+        el.status.textContent = aviso || statusBase;
+        el.status.title = aviso || '';
+        el.status.classList.toggle('com-aviso', !!aviso);
+    }
     function show(msg) {
-        el.aviso.textContent = msg;
-        el.aviso.classList.remove('hidden');
+        aviso = msg;
+        mostraStatus();
         clearTimeout(avisoTimer);
-        avisoTimer = setTimeout(() => el.aviso.classList.add('hidden'), 3500);
+        avisoTimer = setTimeout(() => { aviso = null; mostraStatus(); }, 3500);
     }
 
     // ---- envio ------------------------------------------------------------
@@ -410,22 +428,23 @@
         if (k) k.classList.toggle('tocando', on);
     }
 
-    // letra do teclado do PC que toca esta nota (só na 1ª oitava visível)
+    // teclado do PC: cada letra toca a 1ª tecla com aquele nome a partir do
+    // começo do piano visível (as 7 primeiras teclas brancas)
+    function midiDaLetra(letra) {
+        return inicio + ((LETRA[letra] - (inicio % 12) + 12) % 12);
+    }
     function atalhoDe(m) {
-        const base = (baseOct + 1) * 12;
-        if (m < base || m > base + 11) return null;
-        const pc = m - base;
-        const letra = Object.keys(LETRA).find((l) => LETRA[l] === pc);
-        if (letra) return letra.toUpperCase();
-        const abaixo = Object.keys(LETRA).find((l) => LETRA[l] === pc - 1);
-        return abaixo ? '⇧' + abaixo.toUpperCase() : null;
+        const letra = (n) => Object.keys(LETRA).find((l) => LETRA[l] === n % 12);
+        if (BRANCAS.includes(m % 12)) {
+            return m >= inicio && m <= inicio + 11 ? letra(m).toUpperCase() : null;
+        }
+        return m - 1 >= inicio && m - 1 <= inicio + 11 ? '⇧' + letra(m - 1).toUpperCase() : null;
     }
 
     function montaPiano() {
         const largura = el.piano.clientWidth || 300;
         const minimo = window.innerWidth >= 900 ? 50 : TECLA_MIN_PX; // tela larga: teclas mais largas
         const nBrancas = Math.max(7, Math.min(52, Math.floor(largura / minimo)));
-        const inicio = Math.max(MIDI_MIN, (baseOct + 1) * 12);
         const brancas = [];
         for (let m = inicio; brancas.length < nBrancas && m <= MIDI_MAX; m++) {
             if (BRANCAS.includes(m % 12)) brancas.push(m);
@@ -460,12 +479,20 @@
         Object.values(pressed).forEach((x) => marca(x.midi));
     }
 
-    function mudaOitava(d) {
-        const novo = Math.max(0, Math.min(7, baseOct + d));
-        if (novo === baseOct) return;
-        baseOct = novo;
+    const INICIO_MAX = 96; // Dó7: sempre sobra piano visível
+    function mudaInicio(novo) {
+        novo = Math.max(MIDI_MIN, Math.min(INICIO_MAX, novo));
+        if (novo === inicio) return;
+        inicio = novo;
         save();
         montaPiano();
+    }
+    function mudaOitava(d) { mudaInicio(inicio + 12 * d); }
+    // anda uma tecla branca para baixo/cima
+    function mudaNota(d) {
+        let m = inicio + d;
+        while (!BRANCAS.includes(((m % 12) + 12) % 12)) m += d;
+        mudaInicio(m);
     }
 
     el.piano.addEventListener('pointerdown', (ev) => {
@@ -479,6 +506,8 @@
     noMenu(el.piano);
     $('oitavaMenos').addEventListener('click', () => mudaOitava(-1));
     $('oitavaMais').addEventListener('click', () => mudaOitava(1));
+    $('notaMenos').addEventListener('click', () => mudaNota(-1));
+    $('notaMais').addEventListener('click', () => mudaNota(1));
     let redim = null;
     window.addEventListener('resize', () => { clearTimeout(redim); redim = setTimeout(montaPiano, 150); });
 
@@ -496,7 +525,8 @@
         if (id === 'ajustes') verificaModo();
     }
     function fechaJanelas() {
-        ['ajustes', 'ferramentas', 'fundoJanela'].forEach((id) => $(id).classList.add('hidden'));
+        document.querySelectorAll('.janela').forEach((j) => j.classList.add('hidden'));
+        $('fundoJanela').classList.add('hidden');
     }
     function janelaAberta() { return !$('fundoJanela').classList.contains('hidden'); }
     $('btnAjustes').addEventListener('click', () => abreJanela('ajustes'));
@@ -541,11 +571,11 @@
         else if (k === ' ') { ev.preventDefault(); pulse(t, lastValue); }
         else if (k in LETRA) {
             // Shift + letra = sustenido (Shift+C = Dó♯)
-            const midi = (baseOct + 1) * 12 + LETRA[k] + (ev.shiftKey ? 1 : 0);
+            const midi = midiDaLetra(k) + (ev.shiftKey ? 1 : 0);
             if (!pressed['k' + k]) aperta(t, midi, 'k' + k, null);
         }
-        else if (k === 'arrowleft') { ev.preventDefault(); mudaOitava(-1); }
-        else if (k === 'arrowright') { ev.preventDefault(); mudaOitava(1); }
+        else if (k === 'arrowleft') { ev.preventDefault(); if (ev.shiftKey) mudaNota(-1); else mudaOitava(-1); }
+        else if (k === 'arrowright') { ev.preventDefault(); if (ev.shiftKey) mudaNota(1); else mudaOitava(1); }
         else if (k === 'backspace') { ev.preventDefault(); undo(); }
         else if (k === 'enter') { ev.preventDefault(); send(); }
     });
@@ -555,6 +585,66 @@
     });
 
     $('sinal').addEventListener('click', () => show($('sinal').title));
+
+    // ---- usado por variaveis.js -------------------------------------------
+    // insere um trecho guardado depois de tudo que já foi escrito.
+    // opcoes: transpor (semitons), vezes (repetições), semGrupo (não junta no desfazer)
+    function insereEventos(lista, opcoes) {
+        opcoes = opcoes || {};
+        const transpor = opcoes.transpor || 0;
+        const vezes = Math.max(1, Math.min(16, opcoes.vezes || 1));
+        const foraDoPiano = lista.some((e) => e.type === 'down' &&
+            (e.midi + transpor < MIDI_MIN || e.midi + transpor > MIDI_MAX));
+        if (foraDoPiano) return false;
+        freshIfSent();
+        const ultimo = events.reduce((m, e) => Math.max(m, e.t), 0);
+        const duracao = lista.reduce((m, e) => Math.max(m, e.t), 0);
+        let inicio = Math.max(ultimo, stamp()) + 500;
+        const grupo = opcoes.semGrupo ? null : 'v' + Date.now();
+        for (let r = 0; r < vezes; r++) {
+            const ids = {};
+            lista.forEach((e) => {
+                const novo = { type: e.type, t: inicio + e.t };
+                if (grupo) novo.g = grupo; // tudo que entrou junto sai junto no desfazer
+                if (e.type === 'pulse') novo.value = e.value;
+                else {
+                    if (!(e.id in ids)) ids[e.id] = nextId++;
+                    novo.id = ids[e.id];
+                    if (e.type === 'down') novo.midi = e.midi + transpor;
+                }
+                events.push(novo);
+            });
+            inicio += duracao + 500;
+        }
+        // o próximo toque de verdade tem que vir DEPOIS do trecho inserido
+        const fim = events.reduce((m, e) => Math.max(m, e.t), 0);
+        if (stamp() < fim + 500) offset += fim + 500 - stamp();
+        changed();
+        return true;
+    }
+
+    // troca tudo o que está escrito (usado para editar uma variável e depois
+    // voltar ao que estava antes). Devolve o conteúdo antigo.
+    function trocaEventos(lista) {
+        const antigo = events;
+        escondeCorrecao();
+        events = lista.map((e) => Object.assign({}, e));
+        sent = false;
+        const fim = events.reduce((m, e) => Math.max(m, e.t), 0);
+        if (stamp() < fim + 500) offset += fim + 500 - stamp();
+        changed();
+        return antigo;
+    }
+
+    window.MuseControl = {
+        eventos: () => events.map((e) => Object.assign({}, e)),
+        insereEventos,
+        trocaEventos,
+        nomeMidi,
+        mostra: show,
+        abreJanela,
+        fechaJanelas,
+    };
     load();
     montaPiano();
     ping();
