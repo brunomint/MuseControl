@@ -465,16 +465,44 @@ button.principal { background: var(--destaque); color: #fff; }
 .teclas code { display: block; margin-top: 4px; word-break: break-word; white-space: normal; color: var(--texto); }
 
 /* celular deitado: mais espaço para as mãos */
+/* celular deitado: duas colunas. Esquerda: projeto, prévia, variáveis, PULSO
+   e botões. Direita: o piano com a altura toda da tela. */
 @media (orientation: landscape) and (max-height: 500px) {
-    body { gap: 6px; padding: 6px; }
-    .topo { margin: -6px -6px 0; padding: 4px 6px; }
-    .previa { min-height: 62px; }
-    .palco { min-height: 0; }
-    .acoes button { height: 38px; }
-    .seta { height: 32px; }
-    .piano { min-height: 0; }
-    .faixa img { height: 20px; }
-    .faixa.atual img { height: 24px; }
+    body {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        /* topo | aba | prévia | variáveis | PULSO (o resto) | editando | corrigir | botões */
+        grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto auto;
+        column-gap: 8px;
+        row-gap: 0;
+        padding: 0 6px 6px;
+        height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
+    }
+    body > * { min-width: 0; }
+    .topo { grid-column: 1 / -1; grid-row: 1; margin: 0 -6px 4px; padding: 3px 6px; }
+    .aba-projeto { grid-column: 1; grid-row: 2; margin: 0 0 4px; }
+    .previa { grid-column: 1; grid-row: 3; min-height: 54px; padding: 4px 6px; margin-bottom: 4px; }
+    .previa .fig .img { height: 30px; }
+    .previa .fig img { height: 28px; }
+    .variaveis { grid-column: 1; grid-row: 4; margin-bottom: 4px; min-height: 0; }
+    .chip, .var-guardar { height: 30px; }
+    .var-gerenciar { height: 30px; }
+    .palco { display: contents; }                 /* PULSO e piano vão para colunas diferentes */
+    .pulso { grid-column: 1; grid-row: 5; flex-direction: row; min-height: 0; margin-bottom: 4px; }
+    .faixa { flex-direction: column; gap: 2px; font-size: 11px; }
+    .faixa.atual { font-size: 12px; }
+    .faixa img { height: 22px; }
+    .faixa.atual img { height: 26px; }
+    .editando { grid-column: 1; grid-row: 6; margin-bottom: 4px; }
+    .corrigir { grid-column: 1; grid-row: 7; margin-bottom: 4px; }
+    .acoes { grid-column: 1; grid-row: 8; }
+    .acoes button { height: 36px; font-size: 12px; }
+    .teclado { grid-column: 2; grid-row: 2 / -1; min-height: 0; gap: 4px; }
+    .seta { height: 30px; }
+    .piano { flex: 1; min-height: 0; }
+    .teclas { display: none; }                    /* sem espaço: a lista de teclas fica no PC/retrato */
 }
 
 /* celular em pé: piano em cima e PULSO embaixo, os dois com a largura toda */
